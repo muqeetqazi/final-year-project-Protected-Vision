@@ -49,7 +49,7 @@ const HomeScreen = () => {
 
       if (!result.canceled) {
          setSelectedMedia(result.assets[0]);
-         navigation.navigate('Preview', { media: result.assets[0] });
+         navigation.navigate('PreviewScreen', { media: result.assets[0] });
       }
    };
 
@@ -84,10 +84,10 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
    container: { flex: 1, backgroundColor: '#f7f7f7' },
    scrollContent: { alignItems: 'center', justifyContent: 'center', padding: 20 },
-   title: { fontSize: 28, fontWeight: 'bold', color: '#4CAF50', marginBottom: 20 },
+   title: { fontSize: 28, fontWeight: 'bold', color: '#43034d', marginBottom: 20 },
    subtitle: { fontSize: 18, marginTop: 20, color: '#333' },
    card: { width: '80%', padding: 20, backgroundColor: '#fff', borderRadius: 10, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8, elevation: 5, alignItems: 'center', marginBottom: 20 },
-   button: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 5 },
+   button: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#43034d', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 5 },
    buttonText: { fontSize: 16, color: 'white', marginLeft: 10 },
 });
 
