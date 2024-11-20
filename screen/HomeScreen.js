@@ -2,9 +2,31 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import CarouselComponent from '../screen/components/Carousel';
+
+const { width: viewportWidth } = Dimensions.get('window');
 
 const HomeScreen = () => {
+   const carouselData = [
+      {
+        image: require('../assets/images/lock1.jpg'),
+        text: 'Protect Your Data',
+      },
+      {
+        image: require('../assets/images/lock2.jpeg'),
+        text: 'YOUR OPINION MATTERS TO US WE WELCOME YOUR OPINIONS AND SUGGESTIONS',
+      },
+      {
+        image: require('../assets/images/lock1.jpg'),
+        text: 'PROTECT YOUR CRITICAL PERSONAL INFORMATION',
+      },
+      {
+        image: require('../assets/images/bank.jpg'),
+        text: 'PROTECT YOUR BANKING INFORMATION',
+      },
+   ];
+
    const navigation = useNavigation();
    const [selectedMedia, setSelectedMedia] = useState(null);
 
@@ -56,6 +78,13 @@ const HomeScreen = () => {
    return (
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
          <Text style={styles.title}>Protected Vision</Text>
+         
+         {/* Carousel Section */}
+         <View style={styles.carouselContainer}>
+            <CarouselComponent data={carouselData} />
+         </View>
+
+         {/* Card Section */}
          <View style={styles.card}>
             <Text style={styles.subtitle}>Choose Media</Text>
             <TouchableOpacity onPress={pickMediaFromGallery} style={styles.button}>
@@ -64,14 +93,14 @@ const HomeScreen = () => {
             </TouchableOpacity>
             <TouchableOpacity
                onPress={() => openCamera('image')}
-               style={[styles.button, { marginTop: 10 }]}
+               style={[styles.button, { marginTop: 15 }]}
             >
                <FontAwesome name="camera" size={24} color="white" />
                <Text style={styles.buttonText}>Capture Image</Text>
             </TouchableOpacity>
             <TouchableOpacity
                onPress={() => openCamera('video')}
-               style={[styles.button, { marginTop: 10 }]}
+               style={[styles.button, { marginTop: 15 }]}
             >
                <FontAwesome name="video-camera" size={24} color="white" />
                <Text style={styles.buttonText}>Capture Video</Text>
@@ -82,13 +111,57 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-   container: { flex: 1, backgroundColor: '#f7f7f7' },
-   scrollContent: { alignItems: 'center', justifyContent: 'center', padding: 20 },
-   title: { fontSize: 28, fontWeight: 'bold', color: '#43034d', marginBottom: 20 },
-   subtitle: { fontSize: 18, marginTop: 20, color: '#333' },
-   card: { width: '80%', padding: 20, backgroundColor: '#fff', borderRadius: 10, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8, elevation: 5, alignItems: 'center', marginBottom: 20 },
-   button: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#43034d', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 5 },
-   buttonText: { fontSize: 16, color: 'white', marginLeft: 10 },
+   container: {
+      flex: 1,
+      backgroundColor: '#f7f7f7',
+   },
+   scrollContent: {
+      alignItems: 'center',
+      paddingVertical: 20,
+   },
+   title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: '#43034d',
+      marginBottom: 20,
+   },
+   carouselContainer: {
+      width: viewportWidth ,
+      marginBottom: 20,
+   },
+   card: {
+      width: '90%',
+      backgroundColor: '#fff',
+      borderRadius: 10,
+      padding: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      elevation: 5,
+      marginBottom: 20,
+   },
+   subtitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#333',
+      marginBottom: 20,
+   },
+   button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#43034d',
+      paddingVertical: 15,
+      paddingHorizontal: 25,
+      borderRadius: 8,
+      width: '100%',
+   },
+   buttonText: {
+      fontSize: 16,
+      color: 'white',
+      marginLeft: 10,
+   },
 });
 
 export default HomeScreen;
