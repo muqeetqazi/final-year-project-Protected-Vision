@@ -1,167 +1,238 @@
 import { FontAwesome } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import CarouselComponent from '../screen/components/Carousel';
+import {
+    Dimensions,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import CarouselComponent from './components/Carousel';
 
-const { width: viewportWidth } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-const HomeScreen = () => {
-   const carouselData = [
-      {
-        image: require('../assets/images/lock1.jpg'),
-        text: 'Protect Your Data',
-      },
-      {
-        image: require('../assets/images/lock2.jpeg'),
-        text: 'YOUR OPINION MATTERS TO US WE WELCOME YOUR OPINIONS AND SUGGESTIONS',
-      },
-      {
-        image: require('../assets/images/lock1.jpg'),
-        text: 'PROTECT YOUR CRITICAL PERSONAL INFORMATION',
-      },
-      {
-        image: require('../assets/images/bank.jpg'),
-        text: 'PROTECT YOUR BANKING INFORMATION',
-      },
-   ];
+const HomeScreen = ({ navigation }) => {
+  const [selectedMedia, setSelectedMedia] = useState(null);
 
-   const navigation = useNavigation();
-   const [selectedMedia, setSelectedMedia] = useState(null);
+  const carouselData = [
+    {
+      image: require('../assets/images/lock1.jpg'),
+      text: 'Protect Your Sensitive Content',
+    },
+    {
+      image: require('../assets/images/lock2.jpeg'),
+      text: 'Advanced AI Detection',
+    },
+    {
+      image: require('../assets/images/bank.jpg'),
+      text: 'Secure & Private',
+    },
+  ];
 
-   useEffect(() => {
-      const requestPermissions = async () => {
-         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-         if (status !== 'granted') {
-            alert('Permission to access gallery is required!');
-         }
-      };
-      requestPermissions();
-   }, []);
+  const features = [
+    {
+      icon: 'shield',
+      title: 'Content Protection',
+      description: 'Detect and protect sensitive content automatically',
+    },
+    {
+      icon: 'eye',
+      title: 'AI Detection',
+      description: 'Advanced AI algorithms for accurate detection',
+    },
+    {
+      icon: 'lock',
+      title: 'Privacy First',
+      description: 'Your data stays private and secure',
+    },
+  ];
 
-   const pickMediaFromGallery = async () => {
-      let result = await ImagePicker.launchImageLibraryAsync({
-         mediaTypes: ImagePicker.MediaTypeOptions.All,
-         allowsEditing: true,
-         quality: 1,
+  useEffect(() => {
+    requestPermissions();
+  }, []);
+
+  const requestPermissions = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Sorry, we need camera roll permissions to make this work!');
+    }
+  };
+
+  const handleMediaPicker = async (type) => {
+    let result;
+    if (type === 'camera') {
+      result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        quality: 1,
       });
-
-      if (!result.canceled) {
-         setSelectedMedia(result.assets[0]);
-         navigation.navigate('PreviewScreen', { media: result.assets[0] });
-      }
-   };
-
-   const openCamera = async (mediaType) => {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-         alert('Permission to access camera is required!');
-         return;
-      }
-
-      let result = await ImagePicker.launchCameraAsync({
-         mediaTypes:
-            mediaType === 'video'
-               ? ImagePicker.MediaTypeOptions.Videos
-               : ImagePicker.MediaTypeOptions.Images,
-         allowsEditing: true,
-         quality: 1,
+    } else {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        quality: 1,
       });
+    }
 
-      if (!result.canceled) {
-         setSelectedMedia(result.assets[0]);
-         navigation.navigate('PreviewScreen', { media: result.assets[0] });
-      }
-   };
+    if (!result.canceled) {
+      setSelectedMedia(result.assets[0]);
+      navigation.navigate('Preview', { media: result.assets[0] });
+    }
+  };
 
-   return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-         <Text style={styles.title}>Protected Vision</Text>
-         
-         {/* Carousel Section */}
-         <View style={styles.carouselContainer}>
-            <CarouselComponent data={carouselData} />
-         </View>
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <FontAwesome name="user-circle" size={30} color="#43034d" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Protected Vision</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+          <FontAwesome name="cog" size={30} color="#43034d" />
+        </TouchableOpacity>
+      </View>
 
-         {/* Card Section */}
-         <View style={styles.card}>
-            <Text style={styles.subtitle}>Choose Media</Text>
-            <TouchableOpacity onPress={pickMediaFromGallery} style={styles.button}>
-               <FontAwesome name="photo" size={24} color="white" />
-               <Text style={styles.buttonText}>Select Media</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-               onPress={() => openCamera('image')}
-               style={[styles.button, { marginTop: 15 }]}
-            >
-               <FontAwesome name="camera" size={24} color="white" />
-               <Text style={styles.buttonText}>Capture Image</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-               onPress={() => openCamera('video')}
-               style={[styles.button, { marginTop: 15 }]}
-            >
-               <FontAwesome name="video-camera" size={24} color="white" />
-               <Text style={styles.buttonText}>Capture Video</Text>
-            </TouchableOpacity>
-         </View>
+      <ScrollView style={styles.content}>
+        <CarouselComponent data={carouselData} />
+
+        <View style={styles.featuresContainer}>
+          {features.map((feature, index) => (
+            <View key={index} style={styles.featureCard}>
+              <FontAwesome name={feature.icon} size={30} color="#43034d" />
+              <Text style={styles.featureTitle}>{feature.title}</Text>
+              <Text style={styles.featureDescription}>
+                {feature.description}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.actionContainer}>
+          <Text style={styles.sectionTitle}>Protect Your Content</Text>
+          
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => handleMediaPicker('gallery')}
+          >
+            <FontAwesome name="image" size={24} color="#fff" />
+            <Text style={styles.buttonText}>Select from Gallery</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => handleMediaPicker('camera')}
+          >
+            <FontAwesome name="camera" size={24} color="#fff" />
+            <Text style={styles.buttonText}>Take Photo/Video</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={() => navigation.navigate('History')}
+          >
+            <FontAwesome name="history" size={24} color="#43034d" />
+            <Text style={styles.historyButtonText}>View History</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
-   );
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-   container: {
-      flex: 1,
-      backgroundColor: '#f7f7f7',
-   },
-   scrollContent: {
-      alignItems: 'center',
-      paddingVertical: 20,
-   },
-   title: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      color: '#43034d',
-      marginBottom: 20,
-   },
-   carouselContainer: {
-      width: viewportWidth ,
-      marginBottom: 20,
-   },
-   card: {
-      width: '90%',
-      backgroundColor: '#fff',
-      borderRadius: 10,
-      padding: 20,
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOpacity: 0.1,
-      shadowRadius: 10,
-      elevation: 5,
-      marginBottom: 20,
-   },
-   subtitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: '#333',
-      marginBottom: 20,
-   },
-   button: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#43034d',
-      paddingVertical: 15,
-      paddingHorizontal: 25,
-      borderRadius: 8,
-      width: '100%',
-   },
-   buttonText: {
-      fontSize: 16,
-      color: 'white',
-      marginLeft: 10,
-   },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 50,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#43034d',
+  },
+  content: {
+    flex: 1,
+  },
+  featuresContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  featureCard: {
+    width: '48%',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#43034d',
+    marginTop: 10,
+  },
+  featureDescription: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  actionContainer: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#43034d',
+    marginBottom: 15,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#43034d',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  historyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#43034d',
+  },
+  historyButtonText: {
+    color: '#43034d',
+    fontSize: 16,
+    marginLeft: 10,
+  },
 });
 
 export default HomeScreen;
