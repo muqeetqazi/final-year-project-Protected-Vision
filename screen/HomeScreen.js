@@ -9,11 +9,13 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { useTheme } from '../app/context/ThemeContext';
 import CarouselComponent from './components/Carousel';
 
 const { width, height } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
+  const theme = useTheme();
   const [selectedMedia, setSelectedMedia] = useState(null);
 
   const carouselData = [
@@ -110,14 +112,14 @@ const HomeScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <FontAwesome name="user-circle" size={30} color="#43034d" />
+          <FontAwesome name="user-circle" size={30} color={theme.colors.primary} />
         </TouchableOpacity>
-        <Text style={styles.title}>Protected Vision</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Protected Vision</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <FontAwesome name="cog" size={30} color="#43034d" />
+          <FontAwesome name="cog" size={30} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -126,10 +128,10 @@ const HomeScreen = ({ navigation }) => {
 
         <View style={styles.featuresContainer}>
           {features.map((feature, index) => (
-            <View key={index} style={styles.featureCard}>
-              <FontAwesome name={feature.icon} size={30} color="#43034d" />
-              <Text style={styles.featureTitle}>{feature.title}</Text>
-              <Text style={styles.featureDescription}>
+            <View key={index} style={[styles.featureCard, { backgroundColor: theme.colors.surface }]}>
+              <FontAwesome name={feature.icon} size={30} color={theme.colors.primary} />
+              <Text style={[styles.featureTitle, { color: theme.colors.text }]}>{feature.title}</Text>
+              <Text style={[styles.featureDescription, { color: theme.colors.textSecondary }]}>
                 {feature.description}
               </Text>
             </View>
@@ -137,30 +139,33 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.actionContainer}>
-          <Text style={styles.sectionTitle}>Protect Your Content</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Protect Your Content</Text>
           
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
             onPress={() => handleMediaPicker('gallery')}
           >
-            <FontAwesome name="image" size={24} color="#fff" />
-            <Text style={styles.buttonText}>Select from Gallery</Text>
+            <FontAwesome name="image" size={24} color={theme.colors.buttonText} />
+            <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>Select from Gallery</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
             onPress={() => handleMediaPicker('camera')}
           >
-            <FontAwesome name="camera" size={24} color="#fff" />
-            <Text style={styles.buttonText}>Take Photo/Video</Text>
+            <FontAwesome name="camera" size={24} color={theme.colors.buttonText} />
+            <Text style={[styles.buttonText, { color: theme.colors.buttonText }]}>Take Photo/Video</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.historyButton}
+            style={[styles.historyButton, { 
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.primary 
+            }]}
             onPress={() => navigation.navigate('History')}
           >
-            <FontAwesome name="history" size={24} color="#43034d" />
-            <Text style={styles.historyButtonText}>View History</Text>
+            <FontAwesome name="history" size={24} color={theme.colors.primary} />
+            <Text style={[styles.historyButtonText, { color: theme.colors.primary }]}>View History</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -171,7 +176,6 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: 'row',
@@ -179,12 +183,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 50,
-    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#43034d',
   },
   content: {
     flex: 1,
@@ -197,7 +199,6 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     width: '48%',
-    backgroundColor: '#fff',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -214,12 +215,10 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#43034d',
     marginTop: 10,
   },
   featureDescription: {
     fontSize: 12,
-    color: '#666',
     textAlign: 'center',
     marginTop: 5,
   },
@@ -229,34 +228,28 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#43034d',
     marginBottom: 15,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#43034d',
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     marginLeft: 10,
   },
   historyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 15,
     borderRadius: 10,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#43034d',
   },
   historyButtonText: {
-    color: '#43034d',
     fontSize: 16,
     marginLeft: 10,
   },

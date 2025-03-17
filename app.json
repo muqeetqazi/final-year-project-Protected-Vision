@@ -18,7 +18,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs access to the camera to take photos and videos.",
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select media.",
-        "NSMicrophoneUsageDescription": "This app needs access to the microphone to record videos."
+        "NSMicrophoneUsageDescription": "This app needs access to the microphone to record videos.",
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -30,8 +31,12 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "RECORD_AUDIO"
-      ]
+        "RECORD_AUDIO",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "NOTIFICATIONS"
+      ],
+      "useNextNotificationsApi": true
     },
     "web": {
       "bundler": "metro",
@@ -47,8 +52,23 @@
           "cameraPermission": "The app needs access to your camera to let you take photos."
         }
       ],
-      "expo-av"
+      "expo-av",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#43034d",
+          "sounds": ["./assets/sounds/notification.wav"]
+        }
+      ]
     ],
+    "notification": {
+      "icon": "./assets/images/notification-icon.png",
+      "color": "#43034d",
+      "iosDisplayInForeground": true,
+      "androidMode": "default",
+      "androidCollapsedTitle": "Protected Vision"
+    },
     "experiments": {
       "typedRoutes": true
     }

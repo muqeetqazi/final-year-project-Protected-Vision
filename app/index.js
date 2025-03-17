@@ -1,5 +1,6 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Import the screen components
 //import AboutScreen from './AboutScreen'; // Adjust path if needed
@@ -18,21 +19,23 @@ const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <Stack.Navigator
-      initialRouteName="Auth"
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="Auth" component={AuthScreen} />
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Preview" component={PreviewScreen} />
-      <Stack.Screen name="Result" component={ResultScreen} />
-      <Stack.Screen name="Profile" component={ProfileScreen} />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
-      <Stack.Screen name="History" component={HistoryScreen} />
-      <Stack.Screen name="Dashboard" component={DashboardScreen} />
-      <Stack.Screen name="Subscription" component={SubscriptionScreen} />
-    </Stack.Navigator>
+    <ThemeProvider>
+      <Stack.Navigator
+        initialRouteName="Auth"
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="Auth" component={AuthScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Preview" component={PreviewScreen} />
+        <Stack.Screen name="Result" component={ResultScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="History" component={HistoryScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+      </Stack.Navigator>
+    </ThemeProvider>
   );
 }
