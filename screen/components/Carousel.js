@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     backgroundColor: 'transparent',
+    top:5
   },
   scrollView: {
     backgroundColor: 'transparent',

@@ -1,130 +1,221 @@
-import { FontAwesome } from '@expo/vector-icons';
-import React, { useEffect } from 'react';
-import { Alert, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme } from '../app/context/ThemeContext';
-import NotificationService from '../app/services/NotificationService';
+import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useTheme, useThemeUpdate } from '../app/context/ThemeContext';
 
-const SettingsScreen = ({ navigation }) => {
+import { scheduleNotification } from '../app/services/NotificationService';
+const SettingsScreen = () => {
   const theme = useTheme();
-  const [notifications, setNotifications] = React.useState(false);
-  const [autoSave, setAutoSave] = React.useState(true);
+  const toggleTheme = useThemeUpdate();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [dataBackupEnabled, setDataBackupEnabled] = useState(false);
+  const [autoDeleteEnabled, setAutoDeleteEnabled] = useState(false);
+  const [cloudSyncEnabled, setCloudSyncEnabled] = useState(false);
 
   useEffect(() => {
     checkNotificationPermissions();
   }, []);
 
   const checkNotificationPermissions = async () => {
-    const hasPermission = await NotificationService.requestPermissions();
-    setNotifications(hasPermission);
+    const { status } = await Notifications.getPermissionsAsync();
+    setNotificationsEnabled(status === 'granted');
   };
 
   const handleNotificationToggle = async () => {
-    if (!notifications) {
-      const hasPermission = await NotificationService.requestPermissions();
-      if (hasPermission) {
-        setNotifications(true);
-        // Send a test notification
-        await NotificationService.sendImmediateNotification(
-          'Notifications Enabled',
-          'You will now receive important updates and security alerts!'
-        );
-        // Schedule demo notifications
-        await NotificationService.sendDemoNotifications();
-      } else {
+    const { status } = await Notifications.getPermissionsAsync();
+    
+    if (status !== 'granted') {
+      const { status: newStatus } = await Notifications.requestPermissionsAsync();
+      if (newStatus !== 'granted') {
         Alert.alert(
           'Permission Required',
-          'Please enable notifications in your device settings to receive important updates.',
+          'Please enable notifications in your device settings to receive updates.',
           [{ text: 'OK' }]
         );
+        return;
       }
-    } else {
-      setNotifications(false);
-      await NotificationService.cancelAllNotifications();
-      Alert.alert(
-        'Notifications Disabled',
-        'You will no longer receive notifications from Protected Vision.',
-        [{ text: 'OK' }]
+    }
+    
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    
+    if (newValue) {
+      // Schedule a test notification
+      scheduleNotification(
+        'Notifications Enabled',
+        'You will now receive updates about your protected documents.',
+        5
       );
     }
   };
 
-  const handleClearData = () => {
-    Alert.alert(
-      'Clear App Data',
-      'Are you sure you want to clear all app data? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: async () => {
-            await NotificationService.cancelAllNotifications();
-            setNotifications(false);
-            setAutoSave(false);
-            Alert.alert('Success', 'All app data has been cleared.');
-          },
-        },
-      ]
+  const handleThemeToggle = () => {
+    toggleTheme();
+  };
+
+  const renderSettingItem = (
+    icon,
+    iconType,
+    title,
+    description,
+    value,
+    onToggle,
+    testID
+  ) => {
+    let IconComponent;
+    switch (iconType) {
+      case 'FontAwesome':
+        IconComponent = FontAwesome;
+        break;
+      case 'MaterialIcons':
+        IconComponent = MaterialIcons;
+        break;
+      default:
+        IconComponent = Ionicons;
+    }
+
+    return (
+      <View style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}>
+        <View style={styles.settingIconContainer}>
+          <IconComponent
+            name={icon}
+            size={24}
+            color={theme.colors.primary}
+          />
+        </View>
+        <View style={styles.settingContent}>
+          <Text style={[styles.settingTitle, { color: theme.colors.text }]}>
+            {title}
+          </Text>
+          <Text style={[styles.settingDescription, { color: theme.colors.textSecondary }]}>
+            {description}
+          </Text>
+        </View>
+        <Switch
+          testID={testID}
+          value={value}
+          onValueChange={onToggle}
+          trackColor={{ false: '#767577', true: theme.colors.primaryLight }}
+          thumbColor={value ? theme.colors.primary : '#f4f3f4'}
+          ios_backgroundColor="#3e3e3e"
+        />
+      </View>
     );
   };
 
+  const renderSectionHeader = (title) => (
+    <View style={styles.sectionHeader}>
+      <Text style={[styles.sectionHeaderText, { color: theme.colors.primary }]}>
+        {title}
+      </Text>
+    </View>
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <FontAwesome name="arrow-left" size={24} color={theme.colors.primary} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Settings</Text>
-        <View style={{ width: 24 }} />
+      <View style={[styles.header, { backgroundColor: theme.colors.primary }]}>
+        <Text style={styles.headerTitle}>Settings</Text>
       </View>
+      
+      <ScrollView style={styles.scrollView}>
+        {renderSectionHeader('Appearance')}
+        {renderSettingItem(
+          theme.isDarkMode ? 'moon' : 'sunny',
+          'Ionicons',
+          'Dark Mode',
+          'Switch between light and dark theme',
+          theme.isDarkMode,
+          handleThemeToggle,
+          'theme-toggle'
+        )}
 
-      <View style={styles.content}>
-        <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Appearance</Text>
-          <View style={styles.settingItem}>
-            <Text style={[styles.settingLabel, { color: theme.colors.text }]}>Dark Mode</Text>
-            <Switch
-              value={theme.isDarkMode}
-              onValueChange={theme.toggleTheme}
-              trackColor={{ false: "#767577", true: theme.colors.primary }}
-            />
-          </View>
+        {renderSectionHeader('Notifications')}
+        {renderSettingItem(
+          'notifications',
+          'Ionicons',
+          'Push Notifications',
+          'Receive alerts about sensitive content detection',
+          notificationsEnabled,
+          handleNotificationToggle,
+          'notification-toggle'
+        )}
+
+        {/* {renderSectionHeader('Security')} */}
+        {/* {renderSettingItem(
+          'fingerprint',
+          'MaterialIcons',
+          'Biometric Authentication',
+          'Secure app access with fingerprint or face ID',
+          biometricEnabled,
+          () => setBiometricEnabled(!biometricEnabled),
+          'biometric-toggle'
+        )} */}
+        
+        {renderSectionHeader('Data Management')}
+        {renderSettingItem(
+          'cloud-upload',
+          'FontAwesome',
+          'Cloud Sync',
+          'Sync your data across multiple devices',
+          cloudSyncEnabled,
+          () => setCloudSyncEnabled(!cloudSyncEnabled),
+          'cloud-toggle'
+        )}
+        {/* {renderSettingItem(
+          'backup',
+          'MaterialIcons',
+          'Auto Backup',
+          'Automatically backup your data weekly',
+          dataBackupEnabled,
+          () => setDataBackupEnabled(!dataBackupEnabled),
+          'backup-toggle'
+        )} */}
+        {/* {renderSettingItem(
+          'auto-delete',
+          'MaterialIcons',
+          'Auto Delete',
+          'Automatically delete processed files after 30 days',
+          autoDeleteEnabled,
+          () => setAutoDeleteEnabled(!autoDeleteEnabled),
+          'auto-delete-toggle'
+        )} */}
+
+        <View style={styles.aboutSection}>
+          <TouchableOpacity style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="help-circle" size={24} color={theme.colors.primary} />
+            <Text style={[styles.aboutItemText, { color: theme.colors.text }]}>Help & Support</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="document-text" size={24} color={theme.colors.primary} />
+            <Text style={[styles.aboutItemText, { color: theme.colors.text }]}>Privacy Policy</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="information-circle" size={24} color={theme.colors.primary} />
+            <Text style={[styles.aboutItemText, { color: theme.colors.text }]}>About</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
         </View>
 
-        <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Notifications</Text>
-          <View style={styles.settingItem}>
-            <Text style={[styles.settingLabel, { color: theme.colors.text }]}>Push Notifications</Text>
-            <Switch
-              value={notifications}
-              onValueChange={handleNotificationToggle}
-              trackColor={{ false: "#767577", true: theme.colors.primary }}
-            />
-          </View>
+        <View style={styles.versionContainer}>
+          <Text style={[styles.versionText, { color: theme.colors.textSecondary }]}>
+            Protected Vision v1.0.0
+          </Text>
         </View>
-
-        <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Content</Text>
-          <View style={styles.settingItem}>
-            <Text style={[styles.settingLabel, { color: theme.colors.text }]}>Auto-save Results</Text>
-            <Switch
-              value={autoSave}
-              onValueChange={setAutoSave}
-              trackColor={{ false: "#767577", true: theme.colors.primary }}
-            />
-          </View>
-        </View>
-
-        <TouchableOpacity 
-          style={[styles.button, { backgroundColor: theme.colors.error }]}
-          onPress={handleClearData}
-        >
-          <Text style={styles.buttonText}>Clear App Data</Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -134,49 +225,73 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
     paddingTop: 50,
+    paddingBottom: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#fff',
   },
-  content: {
+  scrollView: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 16,
   },
-  section: {
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 20,
+  sectionHeader: {
+    marginTop: 24,
+    marginBottom: 8,
   },
-  sectionTitle: {
-    fontSize: 18,
+  sectionHeaderText: {
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 15,
   },
   settingItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
   },
-  settingLabel: {
-    fontSize: 16,
-  },
-  button: {
-    padding: 15,
-    borderRadius: 10,
+  settingIconContainer: {
+    width: 40,
     alignItems: 'center',
-    marginTop: 20,
+    marginRight: 12,
   },
-  buttonText: {
-    color: '#fff',
+  settingContent: {
+    flex: 1,
+  },
+  settingTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 14,
+  },
+  aboutSection: {
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  aboutItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  aboutItemText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 12,
+  },
+  versionContainer: {
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  versionText: {
+    fontSize: 14,
   },
 });
 

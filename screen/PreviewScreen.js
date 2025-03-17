@@ -2,6 +2,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import React, { useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../app/context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -10,10 +11,11 @@ const PreviewScreen = ({ route, navigation }) => {
    const [uploading, setUploading] = useState(false);
    const [uploadStatus, setUploadStatus] = useState('');
    const [uploadedMediaUrl, setUploadedMediaUrl] = useState(null);
+   const theme = useTheme();
 
    const API_KEY = 'e83a364d3917e3867767d6982404f314';
 
-   const uploadMedia = async () => {
+   const analyzeDocument = async () => {
       if (!media?.uri) return;
       setUploading(true);
       setUploadStatus('');
@@ -26,6 +28,7 @@ const PreviewScreen = ({ route, navigation }) => {
             name: media.type === 'video' ? 'uploaded_video.mp4' : 'uploaded_image.jpg',
          });
 
+         // In a real app, this would be your ML model API endpoint
          const response = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
             method: 'POST',
             body: formData,
@@ -38,20 +41,39 @@ const PreviewScreen = ({ route, navigation }) => {
 
          if (data.success) {
             setUploadedMediaUrl(data.data.url);
-            setUploadStatus('Media uploaded successfully!');
-            // Navigate to Result screen after successful upload
+            setUploadStatus('Document analyzed successfully!');
+            
+            // Mock sensitive data detection results
+            const mockDetectionResults = {
+               sensitiveDataFound: true,
+               detectedItems: [
+                  { type: 'Credit Card Number', confidence: 0.95, location: 'Top right' },
+                  { type: 'Email Address', confidence: 0.89, location: 'Middle section' },
+                  { type: 'Phone Number', confidence: 0.92, location: 'Bottom left' },
+                  { type: 'National ID', confidence: 0.97, location: 'Header' }
+               ],
+               riskLevel: 'High',
+               recommendations: [
+                  'Redact credit card information',
+                  'Remove personal identifiers before sharing',
+                  'Encrypt document for storage'
+               ]
+            };
+            
+            // Navigate to Result screen with detection results
             navigation.navigate('Result', { 
                media: {
                   ...media,
                   uploadedUrl: data.data.url
-               }
+               },
+               detectionResults: mockDetectionResults
             });
          } else {
-            setUploadStatus('Upload failed. Please try again.');
+            setUploadStatus('Analysis failed. Please try again.');
          }
       } catch (error) {
-         console.error('Upload error:', error);
-         setUploadStatus('An error occurred during upload.');
+         console.error('Analysis error:', error);
+         setUploadStatus('An error occurred during document analysis.');
       } finally {
          setUploading(false);
       }
@@ -59,28 +81,31 @@ const PreviewScreen = ({ route, navigation }) => {
 
    if (!media?.uri) {
       return (
-         <View style={styles.container}>
-            <Text style={styles.errorText}>No media selected</Text>
+         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <Text style={[styles.errorText, { color: theme.colors.error }]}>No document selected</Text>
          </View>
       );
    }
 
    return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
          {/* Header */}
-         <View style={styles.header}>
+         <View style={[styles.header, { 
+            backgroundColor: theme.colors.surface,
+            borderBottomColor: theme.colors.border
+         }]}>
             <TouchableOpacity 
                style={styles.backButton}
                onPress={() => navigation.goBack()}
             >
-               <FontAwesome name="arrow-left" size={24} color="#43034d" />
+               <FontAwesome name="arrow-left" size={24} color={theme.colors.primary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Preview</Text>
+            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Document Preview</Text>
             <View style={{ width: 24 }} />
          </View>
 
-         {/* Media Preview Container */}
-         <View style={styles.mediaContainer}>
+         {/* Document Preview Container */}
+         <View style={[styles.mediaContainer, { backgroundColor: theme.isDarkMode ? '#000' : '#f0f0f0' }]}>
             {media.type === 'video' ? (
                <Video 
                   source={{ uri: media.uri }} 
@@ -99,39 +124,55 @@ const PreviewScreen = ({ route, navigation }) => {
             )}
          </View>
 
+         {/* Info Banner */}
+         <View style={[styles.infoBanner, { backgroundColor: theme.colors.primary }]}>
+            <FontAwesome name="info-circle" size={20} color="#fff" style={styles.infoIcon} />
+            <Text style={styles.infoText}>
+               Our AI will scan this document for sensitive information such as IDs, financial data, and personal identifiers.
+            </Text>
+         </View>
+
          {/* Action Buttons */}
-         <View style={styles.actionContainer}>
+         <View style={[styles.actionContainer, { 
+            backgroundColor: theme.colors.surface,
+            shadowColor: theme.isDarkMode ? '#000' : '#888'
+         }]}>
             {uploading ? (
                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#43034d" />
-                  <Text style={styles.loadingText}>Uploading...</Text>
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                  <Text style={[styles.loadingText, { color: theme.colors.primary }]}>
+                     Analyzing document for sensitive information...
+                  </Text>
                </View>
             ) : (
                <>
                   <TouchableOpacity
-                     style={[styles.button, styles.submitButton]}
-                     onPress={uploadMedia}
+                     style={[styles.button, styles.submitButton, { backgroundColor: theme.colors.primary }]}
+                     onPress={analyzeDocument}
                   >
-                     <FontAwesome name="upload" size={24} color="white" />
-                     <Text style={styles.buttonText}>Submit for Analysis</Text>
+                     <FontAwesome name="search" size={24} color="white" />
+                     <Text style={styles.buttonText}>Analyze for Sensitive Data</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                     style={[styles.button, styles.retakeButton]}
+                     style={[styles.button, styles.retakeButton, { 
+                        backgroundColor: theme.colors.surface,
+                        borderColor: theme.colors.primary 
+                     }]}
                      onPress={() => navigation.goBack()}
                   >
-                     <FontAwesome name="refresh" size={24} color="#43034d" />
-                     <Text style={[styles.buttonText, { color: '#43034d' }]}>Take New Photo</Text>
+                     <FontAwesome name="refresh" size={24} color={theme.colors.primary} />
+                     <Text style={[styles.buttonText, { color: theme.colors.primary }]}>Scan Different Document</Text>
                   </TouchableOpacity>
                </>
             )}
 
             {/* Status Display */}
             {uploadStatus && (
-               <View style={styles.statusContainer}>
+               <View style={[styles.statusContainer, { backgroundColor: theme.colors.background }]}>
                   <Text style={[
                      styles.statusText,
-                     { color: uploadStatus.includes('successfully') ? '#4CAF50' : '#f44336' }
+                     { color: uploadStatus.includes('successfully') ? theme.colors.success : theme.colors.error }
                   ]}>
                      {uploadStatus}
                   </Text>
@@ -145,7 +186,6 @@ const PreviewScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      backgroundColor: '#f8f9fa',
    },
    header: {
       flexDirection: 'row',
@@ -154,21 +194,17 @@ const styles = StyleSheet.create({
       paddingHorizontal: 20,
       paddingTop: 50,
       paddingBottom: 20,
-      backgroundColor: '#fff',
       borderBottomWidth: 1,
-      borderBottomColor: '#eee',
    },
    headerTitle: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: '#43034d',
    },
    backButton: {
       padding: 8,
    },
    mediaContainer: {
       flex: 1,
-      backgroundColor: '#000',
       justifyContent: 'center',
       alignItems: 'center',
    },
@@ -176,12 +212,24 @@ const styles = StyleSheet.create({
       width: width,
       height: height * 0.4,
    },
+   infoBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+   },
+   infoIcon: {
+      marginRight: 10,
+   },
+   infoText: {
+      color: '#fff',
+      fontSize: 14,
+      flex: 1,
+      lineHeight: 20,
+   },
    actionContainer: {
-      backgroundColor: '#fff',
       padding: 20,
       borderTopLeftRadius: 30,
       borderTopRightRadius: 30,
-      shadowColor: '#000',
       shadowOffset: {
          width: 0,
          height: -3,
@@ -220,14 +268,13 @@ const styles = StyleSheet.create({
    loadingText: {
       marginTop: 12,
       fontSize: 16,
-      color: '#43034d',
       fontWeight: '500',
+      textAlign: 'center',
    },
    statusContainer: {
       marginTop: 20,
       padding: 15,
       borderRadius: 12,
-      backgroundColor: '#f8f9fa',
    },
    statusText: {
       fontSize: 16,
@@ -236,7 +283,6 @@ const styles = StyleSheet.create({
    },
    errorText: {
       fontSize: 16,
-      color: '#f44336',
       textAlign: 'center',
       marginTop: 20,
    },

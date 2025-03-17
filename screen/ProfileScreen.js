@@ -1,4 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
     Image,
@@ -10,8 +11,10 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { useTheme } from '../app/context/ThemeContext';
 
 const ProfileScreen = ({ navigation }) => {
+  const theme = useTheme();
   const [userData] = useState({
     name: 'John Doe',
     email: 'john.doe@example.com',
@@ -22,8 +25,8 @@ const ProfileScreen = ({ navigation }) => {
   });
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <View style={[styles.container, { backgroundColor: theme.colors.primary }]}>
+      <StatusBar barStyle={theme.isDarkMode ? "light-content" : "dark-content"} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -42,96 +45,122 @@ const ProfileScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={[styles.content, { backgroundColor: theme.colors.background }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Profile Image Section */}
-        <View style={styles.profileImageSection}>
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={require('../assets/images/default-avatar.jpg')}
-              style={styles.profileImage}
-            />
-            <TouchableOpacity style={styles.editImageButton}>
-              <FontAwesome name="camera" size={16} color="#fff" />
-            </TouchableOpacity>
+        <LinearGradient
+          colors={[theme.colors.primary, theme.isDarkMode ? '#2c0233' : '#7a1a87']}
+          style={styles.profileGradient}
+        >
+          <View style={styles.profileImageSection}>
+            <View style={styles.profileImageContainer}>
+              <Image
+                source={require('../assets/images/default-avatar.jpg')}
+                style={styles.profileImage}
+              />
+              <TouchableOpacity style={styles.editImageButton}>
+                <FontAwesome name="camera" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.userName}>{userData.name}</Text>
+            <Text style={styles.userEmail}>{userData.email}</Text>
+            <View style={styles.subscriptionBadge}>
+              <FontAwesome 
+                name={userData.subscriptionType === 'Premium' ? 'crown' : 'user'} 
+                size={16} 
+                color={userData.subscriptionType === 'Premium' ? '#FFD700' : '#fff'} 
+              />
+              <Text style={styles.subscriptionText}>{userData.subscriptionType}</Text>
+            </View>
           </View>
-          <Text style={styles.userName}>{userData.name}</Text>
-          <Text style={styles.userEmail}>{userData.email}</Text>
-          <View style={styles.subscriptionBadge}>
-            <FontAwesome 
-              name={userData.subscriptionType === 'Premium' ? 'crown' : 'user'} 
-              size={16} 
-              color={userData.subscriptionType === 'Premium' ? '#FFD700' : '#fff'} 
-            />
-            <Text style={styles.subscriptionText}>{userData.subscriptionType}</Text>
-          </View>
-        </View>
+        </LinearGradient>
 
         {/* Stats Section */}
-        <View style={styles.statsContainer}>
+        <View style={[styles.statsContainer, { 
+          backgroundColor: theme.colors.surface,
+          shadowColor: theme.isDarkMode ? '#000' : '#666'
+        }]}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{userData.processedFiles}</Text>
-            <Text style={styles.statLabel}>Processed</Text>
+            <Text style={[styles.statNumber, { color: theme.colors.primary }]}>{userData.processedFiles}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Processed</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{userData.savedFiles}</Text>
-            <Text style={styles.statLabel}>Saved</Text>
+            <Text style={[styles.statNumber, { color: theme.colors.primary }]}>{userData.savedFiles}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Saved</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{userData.sharedFiles}</Text>
-            <Text style={styles.statLabel}>Shared</Text>
+            <Text style={[styles.statNumber, { color: theme.colors.primary }]}>{userData.sharedFiles}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Shared</Text>
           </View>
         </View>
 
         {/* Menu Items */}
-        <View style={styles.menuContainer}>
+        <View style={[styles.menuContainer, { 
+          backgroundColor: theme.colors.surface,
+          shadowColor: theme.isDarkMode ? '#000' : '#666'
+        }]}>
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
             onPress={() => navigation.navigate('Dashboard')}
           >
-            <FontAwesome name="dashboard" size={20} color="#43034d" />
-            <Text style={styles.menuText}>Dashboard</Text>
-            <FontAwesome name="chevron-right" size={16} color="#666" />
+            <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
+              <FontAwesome name="dashboard" size={20} color={theme.colors.primary} />
+            </View>
+            <Text style={[styles.menuText, { color: theme.colors.text }]}>Dashboard</Text>
+            <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={styles.menuItem}
+            style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
             onPress={() => navigation.navigate('Subscription')}
           >
-            <FontAwesome name="star" size={20} color="#43034d" />
-            <Text style={styles.menuText}>Subscription</Text>
-            <FontAwesome name="chevron-right" size={16} color="#666" />
+            <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
+              <FontAwesome name="star" size={20} color={theme.colors.primary} />
+            </View>
+            <Text style={[styles.menuText, { color: theme.colors.text }]}>Subscription</Text>
+            <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+            <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
+              <FontAwesome name="user" size={20} color={theme.colors.primary} />
+            </View>
+            <Text style={[styles.menuText, { color: theme.colors.text }]}>Edit Profile</Text>
+            <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+            <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
+              <FontAwesome name="bell" size={20} color={theme.colors.primary} />
+            </View>
+            <Text style={[styles.menuText, { color: theme.colors.text }]}>Notifications</Text>
+            <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+            <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
+              <FontAwesome name="lock" size={20} color={theme.colors.primary} />
+            </View>
+            <Text style={[styles.menuText, { color: theme.colors.text }]}>Privacy & Security</Text>
+            <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
-            <FontAwesome name="user" size={20} color="#43034d" />
-            <Text style={styles.menuText}>Edit Profile</Text>
-            <FontAwesome name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <FontAwesome name="bell" size={20} color="#43034d" />
-            <Text style={styles.menuText}>Notifications</Text>
-            <FontAwesome name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <FontAwesome name="lock" size={20} color="#43034d" />
-            <Text style={styles.menuText}>Privacy & Security</Text>
-            <FontAwesome name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <FontAwesome name="question-circle" size={20} color="#43034d" />
-            <Text style={styles.menuText}>Help & Support</Text>
-            <FontAwesome name="chevron-right" size={16} color="#666" />
+            <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
+              <FontAwesome name="question-circle" size={20} color={theme.colors.primary} />
+            </View>
+            <Text style={[styles.menuText, { color: theme.colors.text }]}>Help & Support</Text>
+            <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity 
-          style={styles.logoutButton}
+          style={[styles.logoutButton, { backgroundColor: theme.colors.error }]}
           onPress={() => navigation.replace('Auth')}
         >
           <FontAwesome name="sign-out" size={20} color="#fff" />
@@ -145,7 +174,6 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#43034d',
   },
   header: {
     flexDirection: 'row',
@@ -167,13 +195,17 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
   },
+  profileGradient: {
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingBottom: 30,
+  },
   profileImageSection: {
     alignItems: 'center',
-    marginTop: 30,
+    paddingTop: 30,
   },
   profileImageContainer: {
     position: 'relative',
@@ -182,7 +214,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    borderWidth: 3,
+    borderWidth: 4,
     borderColor: '#fff',
   },
   editImageButton: {
@@ -201,29 +233,28 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#fff',
     marginTop: 15,
   },
   userEmail: {
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
     marginTop: 5,
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#fff',
     margin: 20,
+    marginTop: -20,
     padding: 20,
     borderRadius: 15,
-    elevation: 3,
-    shadowColor: '#000',
+    elevation: 5,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
   },
   statItem: {
     alignItems: 'center',
@@ -231,51 +262,52 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#43034d',
   },
   statLabel: {
     fontSize: 14,
-    color: '#666',
     marginTop: 5,
   },
   statDivider: {
     width: 1,
     height: '100%',
-    backgroundColor: '#ddd',
   },
   menuContainer: {
-    backgroundColor: '#fff',
     margin: 20,
     borderRadius: 15,
     elevation: 3,
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius: 3.84,
+    overflow: 'hidden',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+  },
+  menuIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
   },
   menuText: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
-    marginLeft: 15,
+    fontWeight: '500',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ff3b30',
     margin: 20,
-    padding: 15,
+    padding: 16,
     borderRadius: 15,
     marginBottom: 30,
   },
@@ -288,7 +320,7 @@ const styles = StyleSheet.create({
   subscriptionBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#43034d',
+    backgroundColor: 'rgba(0,0,0,0.3)',
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 20,
