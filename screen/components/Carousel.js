@@ -31,7 +31,7 @@ const CarouselComponent = ({ data }) => {
       >
         {data.map((item, index) => (
           <View style={styles.slide} key={index}>
-            <Image source={item.image} style={styles.image} />
+             <Image source={item.image} style={styles.image} /> 
             <View style={styles.textContainer}>
             <Text style={styles.text}>{item.text}</Text> 
 
