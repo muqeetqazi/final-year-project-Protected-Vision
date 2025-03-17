@@ -54,31 +54,62 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   const requestPermissions = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Sorry, we need camera roll permissions to make this work!');
+    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+    const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (cameraStatus !== 'granted' || libraryStatus !== 'granted') {
+      alert('Sorry, we need camera and media library permissions to make this work!');
     }
   };
 
   const handleMediaPicker = async (type) => {
-    let result;
-    if (type === 'camera') {
-      result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
+    try {
+      const options = {
         allowsEditing: true,
+        aspect: [4, 3],
         quality: 1,
-      });
-    } else {
-      result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        quality: 1,
-      });
-    }
+      };
 
-    if (!result.canceled) {
-      setSelectedMedia(result.assets[0]);
-      navigation.navigate('Preview', { media: result.assets[0] });
+      if (type === 'camera') {
+        const result = await ImagePicker.launchCameraAsync({
+          ...options,
+          mediaTypes: [ImagePicker.MediaType.Images],
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const selectedAsset = result.assets[0];
+          setSelectedMedia(selectedAsset);
+          navigation.navigate('Preview', { 
+            media: {
+              uri: selectedAsset.uri,
+              type: 'image',
+              width: selectedAsset.width,
+              height: selectedAsset.height
+            }
+          });
+        }
+      } else {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          ...options,
+          mediaTypes: [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos],
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const selectedAsset = result.assets[0];
+          setSelectedMedia(selectedAsset);
+          navigation.navigate('Preview', { 
+            media: {
+              uri: selectedAsset.uri,
+              type: selectedAsset.type || 'image',
+              width: selectedAsset.width,
+              height: selectedAsset.height
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error picking media:', error);
+      alert('Error accessing media. Please try again.');
     }
   };
 

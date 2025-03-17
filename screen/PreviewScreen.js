@@ -6,30 +6,32 @@ import { ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacit
 const { width, height } = Dimensions.get('window');
 
 const PreviewScreen = ({ route, navigation }) => {
-   const { media } = route.params; // Get the media passed from HomeScreen
+   const { media } = route.params;
    const [uploading, setUploading] = useState(false);
    const [uploadStatus, setUploadStatus] = useState('');
    const [uploadedMediaUrl, setUploadedMediaUrl] = useState(null);
 
-   const API_KEY = 'e83a364d3917e3867767d6982404f314'; // Replace with your ImgBB API key
+   const API_KEY = 'e83a364d3917e3867767d6982404f314';
 
-   const uploadMedia = async (mediaUri, mediaType) => {
-      if (!mediaUri) return;
+   const uploadMedia = async () => {
+      if (!media?.uri) return;
       setUploading(true);
       setUploadStatus('');
 
-      let formData = new FormData();
-      formData.append('image', {
-         uri: mediaUri,
-         type: mediaType === 'video' ? 'video/mp4' : 'image/jpeg',
-         name: mediaType === 'video' ? 'uploaded_video.mp4' : 'uploaded_image.jpg',
-      });
-
       try {
+         const formData = new FormData();
+         formData.append('image', {
+            uri: media.uri,
+            type: media.type === 'video' ? 'video/mp4' : 'image/jpeg',
+            name: media.type === 'video' ? 'uploaded_video.mp4' : 'uploaded_image.jpg',
+         });
+
          const response = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
             method: 'POST',
             body: formData,
-            headers: { 'Content-Type': 'multipart/form-data' },
+            headers: {
+               'Content-Type': 'multipart/form-data',
+            },
          });
 
          const data = await response.json();
@@ -37,15 +39,31 @@ const PreviewScreen = ({ route, navigation }) => {
          if (data.success) {
             setUploadedMediaUrl(data.data.url);
             setUploadStatus('Media uploaded successfully!');
+            // Navigate to Result screen after successful upload
+            navigation.navigate('Result', { 
+               media: {
+                  ...media,
+                  uploadedUrl: data.data.url
+               }
+            });
          } else {
-            setUploadStatus('Media upload failed. Please try again.');
+            setUploadStatus('Upload failed. Please try again.');
          }
       } catch (error) {
+         console.error('Upload error:', error);
          setUploadStatus('An error occurred during upload.');
       } finally {
          setUploading(false);
       }
    };
+
+   if (!media?.uri) {
+      return (
+         <View style={styles.container}>
+            <Text style={styles.errorText}>No media selected</Text>
+         </View>
+      );
+   }
 
    return (
       <View style={styles.container}>
@@ -63,19 +81,20 @@ const PreviewScreen = ({ route, navigation }) => {
 
          {/* Media Preview Container */}
          <View style={styles.mediaContainer}>
-            {media.type === 'image' ? (
-               <Image 
-                  source={{ uri: media.uri }} 
-                  style={styles.mediaPreview}
-                  resizeMode="contain"
-               />
-            ) : (
+            {media.type === 'video' ? (
                <Video 
                   source={{ uri: media.uri }} 
                   style={styles.mediaPreview}
                   useNativeControls
                   resizeMode="contain"
                   isLooping
+                  shouldPlay
+               />
+            ) : (
+               <Image 
+                  source={{ uri: media.uri }} 
+                  style={styles.mediaPreview}
+                  resizeMode="contain"
                />
             )}
          </View>
@@ -91,7 +110,7 @@ const PreviewScreen = ({ route, navigation }) => {
                <>
                   <TouchableOpacity
                      style={[styles.button, styles.submitButton]}
-                     onPress={() => uploadMedia(media.uri, media.type)}
+                     onPress={uploadMedia}
                   >
                      <FontAwesome name="upload" size={24} color="white" />
                      <Text style={styles.buttonText}>Submit for Analysis</Text>
@@ -101,13 +120,13 @@ const PreviewScreen = ({ route, navigation }) => {
                      style={[styles.button, styles.retakeButton]}
                      onPress={() => navigation.goBack()}
                   >
-                     <FontAwesome name="camera" size={24} color="#43034d" />
+                     <FontAwesome name="refresh" size={24} color="#43034d" />
                      <Text style={[styles.buttonText, { color: '#43034d' }]}>Take New Photo</Text>
                   </TouchableOpacity>
                </>
             )}
 
-            {/* Status and URL Display */}
+            {/* Status Display */}
             {uploadStatus && (
                <View style={styles.statusContainer}>
                   <Text style={[
@@ -116,12 +135,6 @@ const PreviewScreen = ({ route, navigation }) => {
                   ]}>
                      {uploadStatus}
                   </Text>
-                  {uploadedMediaUrl && (
-                     <View style={styles.urlContainer}>
-                        <Text style={styles.urlLabel}>Uploaded Media URL:</Text>
-                        <Text selectable style={styles.urlText}>{uploadedMediaUrl}</Text>
-                     </View>
-                  )}
                </View>
             )}
          </View>
@@ -221,26 +234,11 @@ const styles = StyleSheet.create({
       textAlign: 'center',
       fontWeight: '500',
    },
-   urlContainer: {
-      marginTop: 15,
-      padding: 12,
-      borderRadius: 8,
-      backgroundColor: '#fff',
-      borderWidth: 1,
-      borderColor: '#e0e0e0',
-   },
-   urlLabel: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: '#666',
-      marginBottom: 6,
-   },
-   urlText: {
-      color: '#1a73e8',
-      fontSize: 14,
-      padding: 8,
-      backgroundColor: '#f5f5f5',
-      borderRadius: 6,
+   errorText: {
+      fontSize: 16,
+      color: '#f44336',
+      textAlign: 'center',
+      marginTop: 20,
    },
 });
 
