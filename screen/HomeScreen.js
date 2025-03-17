@@ -64,48 +64,44 @@ const HomeScreen = ({ navigation }) => {
 
   const handleMediaPicker = async (type) => {
     try {
-      const options = {
+      const baseOptions = {
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
       };
 
+      let result;
       if (type === 'camera') {
-        const result = await ImagePicker.launchCameraAsync({
-          ...options,
-          mediaTypes: [ImagePicker.MediaType.Images],
+        result = await ImagePicker.launchCameraAsync({
+          ...baseOptions,
+          mediaTypes: ImagePicker.MediaTypeOptions.Images
         });
-
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          const selectedAsset = result.assets[0];
-          setSelectedMedia(selectedAsset);
-          navigation.navigate('Preview', { 
-            media: {
-              uri: selectedAsset.uri,
-              type: 'image',
-              width: selectedAsset.width,
-              height: selectedAsset.height
-            }
-          });
-        }
       } else {
-        const result = await ImagePicker.launchImageLibraryAsync({
-          ...options,
-          mediaTypes: [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos],
+        result = await ImagePicker.launchImageLibraryAsync({
+          ...baseOptions,
+          mediaTypes: ImagePicker.MediaTypeOptions.All
         });
+      }
 
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          const selectedAsset = result.assets[0];
-          setSelectedMedia(selectedAsset);
-          navigation.navigate('Preview', { 
-            media: {
-              uri: selectedAsset.uri,
-              type: selectedAsset.type || 'image',
-              width: selectedAsset.width,
-              height: selectedAsset.height
-            }
-          });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedAsset = result.assets[0];
+        
+        // Add file size validation (optional, 50MB limit)
+        const fileSize = selectedAsset.fileSize || 0;
+        if (fileSize > 50 * 1024 * 1024) { // 50MB in bytes
+          alert('File size too large. Please select a file under 50MB.');
+          return;
         }
+
+        setSelectedMedia(selectedAsset);
+        navigation.navigate('Preview', { 
+          media: {
+            uri: selectedAsset.uri,
+            type: selectedAsset.type || 'image',
+            width: selectedAsset.width,
+            height: selectedAsset.height
+          }
+        });
       }
     } catch (error) {
       console.error('Error picking media:', error);

@@ -1,20 +1,21 @@
 import { FontAwesome } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  Image,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 const ProfileScreen = ({ navigation }) => {
   const [userData] = useState({
     name: 'John Doe',
     email: 'john.doe@example.com',
+    subscriptionType: 'Standard',
     processedFiles: 12,
     savedFiles: 5,
     sharedFiles: 3,
@@ -55,6 +56,14 @@ const ProfileScreen = ({ navigation }) => {
           </View>
           <Text style={styles.userName}>{userData.name}</Text>
           <Text style={styles.userEmail}>{userData.email}</Text>
+          <View style={styles.subscriptionBadge}>
+            <FontAwesome 
+              name={userData.subscriptionType === 'Premium' ? 'crown' : 'user'} 
+              size={16} 
+              color={userData.subscriptionType === 'Premium' ? '#FFD700' : '#fff'} 
+            />
+            <Text style={styles.subscriptionText}>{userData.subscriptionType}</Text>
+          </View>
         </View>
 
         {/* Stats Section */}
@@ -77,6 +86,24 @@ const ProfileScreen = ({ navigation }) => {
 
         {/* Menu Items */}
         <View style={styles.menuContainer}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Dashboard')}
+          >
+            <FontAwesome name="dashboard" size={20} color="#43034d" />
+            <Text style={styles.menuText}>Dashboard</Text>
+            <FontAwesome name="chevron-right" size={16} color="#666" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Subscription')}
+          >
+            <FontAwesome name="star" size={20} color="#43034d" />
+            <Text style={styles.menuText}>Subscription</Text>
+            <FontAwesome name="chevron-right" size={16} color="#666" />
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.menuItem}>
             <FontAwesome name="user" size={20} color="#43034d" />
             <Text style={styles.menuText}>Edit Profile</Text>
@@ -257,6 +284,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 10,
+  },
+  subscriptionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#43034d',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 10,
+  },
+  subscriptionText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

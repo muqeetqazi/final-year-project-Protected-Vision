@@ -87,8 +87,8 @@ const PreviewScreen = ({ route, navigation }) => {
                   style={styles.mediaPreview}
                   useNativeControls
                   resizeMode="contain"
+                  shouldPlay={false}
                   isLooping
-                  shouldPlay
                />
             ) : (
                <Image 
