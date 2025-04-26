@@ -12,9 +12,9 @@ import PreviewScreen from '../screen/PreviewScreen';
 import ProfileScreen from '../screen/ProfileScreen';
 import ResultScreen from '../screen/ResultScreen';
 import SettingsScreen from '../screen/SettingsScreen';
-import SubscriptionScreen from '../screen/SubscriptionScreen';
 
-// Create the Stack Navigator
+
+
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -31,10 +31,9 @@ export default function App() {
         <Stack.Screen name="Preview" component={PreviewScreen} />
         <Stack.Screen name="Result" component={ResultScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="History" component={HistoryScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
-        <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </ThemeProvider>
   );

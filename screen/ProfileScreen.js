@@ -2,14 +2,14 @@ import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-    Image,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useTheme } from '../app/context/ThemeContext';
 
@@ -18,7 +18,7 @@ const ProfileScreen = ({ navigation }) => {
   const [userData] = useState({
     name: 'John Doe',
     email: 'john.doe@example.com',
-    subscriptionType: 'Standard',
+    
     processedFiles: 12,
     savedFiles: 5,
     sharedFiles: 3,
@@ -66,14 +66,14 @@ const ProfileScreen = ({ navigation }) => {
             </View>
             <Text style={styles.userName}>{userData.name}</Text>
             <Text style={styles.userEmail}>{userData.email}</Text>
-            <View style={styles.subscriptionBadge}>
+            {/* <View style={styles.subscriptionBadge}>
               <FontAwesome 
                 name={userData.subscriptionType === 'Premium' ? 'crown' : 'user'} 
                 size={16} 
                 color={userData.subscriptionType === 'Premium' ? '#FFD700' : '#fff'} 
               />
               <Text style={styles.subscriptionText}>{userData.subscriptionType}</Text>
-            </View>
+            </View> */}
           </View>
         </LinearGradient>
 
@@ -114,7 +114,7 @@ const ProfileScreen = ({ navigation }) => {
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
             onPress={() => navigation.navigate('Subscription')}
           >
@@ -123,7 +123,7 @@ const ProfileScreen = ({ navigation }) => {
             </View>
             <Text style={[styles.menuText, { color: theme.colors.text }]}>Subscription</Text>
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
