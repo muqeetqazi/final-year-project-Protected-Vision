@@ -2,16 +2,16 @@ import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-  Dimensions,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useTheme } from '../app/context/ThemeContext';
 
@@ -27,7 +27,7 @@ const AuthScreen = ({ navigation }) => {
 
   const handleAuth = () => {
     // For demo purposes, just navigate to Home
-    navigation.replace('Home');
+      navigation.replace('Home');
   };
 
   const toggleAuthMode = () => {
@@ -49,16 +49,16 @@ const AuthScreen = ({ navigation }) => {
           style={styles.headerGradient}
         >
           <View style={styles.logoContainer}>
-            <Image
-              source={require('../assets/images/splash.png')}
-              style={styles.logo}
+          <Image
+              source={require('../assets/images/icon.png')}
+            style={styles.logo}
               resizeMode="contain"
-            />
+          />
             <Text style={styles.appName}>Protected Vision</Text>
             <Text style={styles.tagline}>
               Secure your sensitive information with AI
-            </Text>
-          </View>
+          </Text>
+        </View>
         </LinearGradient>
 
         <View style={[styles.authContainer, { backgroundColor: theme.colors.surface }]}>
@@ -118,29 +118,29 @@ const AuthScreen = ({ navigation }) => {
               <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Email</Text>
               <View style={[styles.inputContainer, { backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5' }]}>
                 <FontAwesome name="envelope" size={20} color={theme.colors.primary} style={styles.inputIcon} />
-                <TextInput
+            <TextInput
                   style={[styles.input, { color: theme.colors.text }]}
                   placeholder="Enter your email"
                   placeholderTextColor={theme.colors.textSecondary}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  value={email}
-                  onChangeText={setEmail}
-                />
+              value={email}
+              onChangeText={setEmail}
+            />
               </View>
-            </View>
+          </View>
 
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Password</Text>
               <View style={[styles.inputContainer, { backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5' }]}>
                 <FontAwesome name="lock" size={20} color={theme.colors.primary} style={styles.inputIcon} />
-                <TextInput
+            <TextInput
                   style={[styles.input, { color: theme.colors.text }]}
                   placeholder="Enter your password"
                   placeholderTextColor={theme.colors.textSecondary}
                   secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
+              value={password}
+              onChangeText={setPassword}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                   <FontAwesome
@@ -150,15 +150,15 @@ const AuthScreen = ({ navigation }) => {
                   />
                 </TouchableOpacity>
               </View>
-            </View>
+          </View>
 
-            {isLogin && (
+          {isLogin && (
               <TouchableOpacity style={styles.forgotPasswordContainer}>
                 <Text style={[styles.forgotPasswordText, { color: theme.colors.primary }]}>
                   Forgot Password?
                 </Text>
-              </TouchableOpacity>
-            )}
+            </TouchableOpacity>
+          )}
 
             <TouchableOpacity
               style={[styles.authButton, { backgroundColor: theme.colors.primary }]}
@@ -166,32 +166,32 @@ const AuthScreen = ({ navigation }) => {
             >
               <Text style={styles.authButtonText}>
                 {isLogin ? 'Login' : 'Sign Up'}
-              </Text>
-            </TouchableOpacity>
+            </Text>
+          </TouchableOpacity>
 
             <View style={styles.orContainer}>
               <View style={[styles.orLine, { backgroundColor: theme.colors.border }]} />
               <Text style={[styles.orText, { color: theme.colors.textSecondary }]}>OR</Text>
               <View style={[styles.orLine, { backgroundColor: theme.colors.border }]} />
-            </View>
+          </View>
 
-            <View style={styles.socialButtonsContainer}>
+          <View style={styles.socialButtonsContainer}>
               <TouchableOpacity
                 style={[styles.socialButton, { backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5' }]}
               >
-                <FontAwesome name="google" size={20} color="#DB4437" />
+              <FontAwesome name="google" size={20} color="#DB4437" />
                 <Text style={[styles.socialButtonText, { color: theme.colors.text }]}>
                   Google
                 </Text>
-              </TouchableOpacity>
+            </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.socialButton, { backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5' }]}
               >
-                <FontAwesome name="facebook" size={20} color="#4267B2" />
+              <FontAwesome name="facebook" size={20} color="#4267B2" />
                 <Text style={[styles.socialButtonText, { color: theme.colors.text }]}>
                   Facebook
                 </Text>
-              </TouchableOpacity>
+            </TouchableOpacity>
             </View>
           </View>
         </View>

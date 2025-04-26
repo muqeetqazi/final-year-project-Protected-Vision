@@ -140,9 +140,9 @@ const ResultScreen = ({ route, navigation }) => {
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.mediaContainer}>
-          <Image 
-            source={{ uri: media.uri }} 
-            style={styles.mediaPreview} 
+          <Image
+            source={{ uri: media.uri }}
+            style={styles.mediaPreview}
             resizeMode="cover"
           />
           <View 
@@ -274,15 +274,15 @@ const ResultScreen = ({ route, navigation }) => {
             <FontAwesome name="eraser" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Redact</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+        <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: theme.colors.secondary }]} 
             onPress={handleSave}
-          >
+        >
             <FontAwesome name="save" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Save</Text>
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
+      </View>
       </ScrollView>
     </View>
   );

@@ -22,14 +22,14 @@ const PreviewScreen = ({ route, navigation }) => {
 
       try {
          const formData = new FormData();
-         formData.append('image', {
+      formData.append('image', {
             uri: media.uri,
             type: media.type === 'video' ? 'video/mp4' : 'image/jpeg',
             name: media.type === 'video' ? 'uploaded_video.mp4' : 'uploaded_image.jpg',
          });
 
          // In a real app, this would be your ML model API endpoint
-         const response = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
             method: 'POST',
             body: formData,
             headers: {
@@ -94,7 +94,7 @@ const PreviewScreen = ({ route, navigation }) => {
             backgroundColor: theme.colors.surface,
             borderBottomColor: theme.colors.border
          }]}>
-            <TouchableOpacity 
+            <TouchableOpacity
                style={styles.backButton}
                onPress={() => navigation.goBack()}
             >
@@ -154,18 +154,18 @@ const PreviewScreen = ({ route, navigation }) => {
                      <Text style={styles.buttonText}>Analyze for Sensitive Data</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity
+         <TouchableOpacity
                      style={[styles.button, styles.retakeButton, { 
                         backgroundColor: theme.colors.surface,
                         borderColor: theme.colors.primary 
                      }]}
-                     onPress={() => navigation.goBack()}
-                  >
+            onPress={() => navigation.goBack()}
+        >
                      <FontAwesome name="refresh" size={24} color={theme.colors.primary} />
                      <Text style={[styles.buttonText, { color: theme.colors.primary }]}>Scan Different Document</Text>
-                  </TouchableOpacity>
-               </>
-            )}
+        </TouchableOpacity>
+            </>
+    )}
 
             {/* Status Display */}
             {uploadStatus && (
