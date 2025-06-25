@@ -10,69 +10,32 @@ const PreviewScreen = ({ route, navigation }) => {
    const { media } = route.params;
    const [uploading, setUploading] = useState(false);
    const [uploadStatus, setUploadStatus] = useState('');
-   const [uploadedMediaUrl, setUploadedMediaUrl] = useState(null);
    const theme = useTheme();
-
-   const API_KEY = 'e83a364d3917e3867767d6982404f314';
 
    const analyzeDocument = async () => {
       if (!media?.uri) return;
       setUploading(true);
       setUploadStatus('');
-
       try {
-         const formData = new FormData();
-      formData.append('image', {
-            uri: media.uri,
-            type: media.type === 'video' ? 'video/mp4' : 'image/jpeg',
-            name: media.type === 'video' ? 'uploaded_video.mp4' : 'uploaded_image.jpg',
-         });
-
-         // In a real app, this would be your ML model API endpoint
-        const response = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
-            method: 'POST',
-            body: formData,
-            headers: {
-               'Content-Type': 'multipart/form-data',
-            },
-         });
-
-         const data = await response.json();
-
-         if (data.success) {
-            setUploadedMediaUrl(data.data.url);
-            setUploadStatus('Document analyzed successfully!');
-            
-            // Mock sensitive data detection results
-            const mockDetectionResults = {
-               sensitiveDataFound: true,
-               detectedItems: [
-                  { type: 'Credit Card Number', confidence: 0.95, location: 'Top right' },
-                  { type: 'Email Address', confidence: 0.89, location: 'Middle section' },
-                  { type: 'Phone Number', confidence: 0.92, location: 'Bottom left' },
-                  { type: 'National ID', confidence: 0.97, location: 'Header' }
-               ],
-               riskLevel: 'High',
-               recommendations: [
-                  'Redact credit card information',
-                  'Remove personal identifiers before sharing',
-                  'Encrypt document for storage'
-               ]
-            };
-            
-            // Navigate to Result screen with detection results
-            navigation.navigate('Result', { 
-               media: {
-                  ...media,
-                  uploadedUrl: data.data.url
-               },
-               detectionResults: mockDetectionResults
-            });
-         } else {
-            setUploadStatus('Analysis failed. Please try again.');
+         // Use the processed image from blurResult if available
+         let processedUri = media.blurResult;
+         if (!processedUri) {
+           setUploadStatus('No processed image found.');
+           setUploading(false);
+           return;
          }
+         // If it's base64, add prefix
+         if (!processedUri.startsWith('http') && !processedUri.startsWith('file:')) {
+           processedUri = `data:image/jpeg;base64,${processedUri}`;
+         }
+         // Navigate to Result screen with processed image
+         navigation.navigate('Result', {
+           media: {
+             ...media,
+             uri: processedUri // show processed image
+           }
+         });
       } catch (error) {
-         console.error('Analysis error:', error);
          setUploadStatus('An error occurred during document analysis.');
       } finally {
          setUploading(false);

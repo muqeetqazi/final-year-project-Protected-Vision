@@ -140,11 +140,15 @@ const ResultScreen = ({ route, navigation }) => {
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.mediaContainer}>
-          <Image
-            source={{ uri: media.uri }}
-            style={styles.mediaPreview}
-            resizeMode="cover"
-          />
+          {media.uri ? (
+            <Image
+              source={{ uri: media.uri }}
+              style={styles.mediaPreview}
+              resizeMode="cover"
+            />
+          ) : (
+            <Text style={{ color: 'red', textAlign: 'center' }}>No image to display</Text>
+          )}
           <View 
             style={[
               styles.riskBadge, 

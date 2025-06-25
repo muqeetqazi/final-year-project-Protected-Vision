@@ -3,16 +3,17 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
-    Dimensions,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Dimensions,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { useTheme } from '../app/context/ThemeContext';
+import { detectBlur } from '../app/services/BlurDetectionService';
 import NotificationService from '../app/services/NotificationService';
 import CarouselComponent from './components/Carousel';
 
@@ -137,14 +138,21 @@ const HomeScreen = ({ navigation }) => {
         }
 
         setSelectedMedia(selectedAsset);
-        navigation.navigate('Preview', { 
-          media: {
-            uri: selectedAsset.uri,
-            type: selectedAsset.type || 'image',
-            width: selectedAsset.width,
-            height: selectedAsset.height
-          }
-        });
+        try {
+          const blurResult = await detectBlur(selectedAsset.uri);
+          console.log('Blur API result:', blurResult);
+          navigation.navigate('Preview', {
+            media: {
+              uri: selectedAsset.uri,
+              type: selectedAsset.type || 'image',
+              width: selectedAsset.width,
+              height: selectedAsset.height,
+              blurResult: blurResult,
+            }
+          });
+        } catch (apiError) {
+          alert('Blur detection API error: ' + apiError.message);
+        }
       }
     } catch (error) {
       console.error('Error picking media:', error);
