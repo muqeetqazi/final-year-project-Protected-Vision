@@ -2,12 +2,12 @@ import axios from 'axios';
 import { Buffer } from 'buffer';
 const API_URL = 'https://ahmadshafique-no-plate-api.hf.space/blur-detected/';
 
-export const detectBlur = async (imageUri) => {
+export const detectBlur = async (fileUri, fileType, fileName) => {
   const formData = new FormData();
   formData.append('file', {
-    uri: imageUri,
-    name: 'image.jpg',
-    type: 'image/jpeg',
+    uri: fileUri,
+    name: fileName,
+    type: fileType,
   });
 
   try {

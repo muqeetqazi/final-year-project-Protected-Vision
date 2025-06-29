@@ -119,7 +119,7 @@ const HomeScreen = ({ navigation }) => {
       if (type === 'camera') {
         result = await ImagePicker.launchCameraAsync({
           ...baseOptions,
-          mediaTypes: ImagePicker.MediaTypeOptions.Images
+          mediaTypes: ImagePicker.MediaTypeOptions.All
         });
       } else {
         result = await ImagePicker.launchImageLibraryAsync({
@@ -139,12 +139,20 @@ const HomeScreen = ({ navigation }) => {
 
         setSelectedMedia(selectedAsset);
         try {
-          const blurResult = await detectBlur(selectedAsset.uri);
+          let fileType = 'image/jpeg';
+          let fileName = 'image.jpg';
+          let navType = 'image';
+          if (selectedAsset.type === 'video' || (selectedAsset.uri && selectedAsset.uri.endsWith('.mp4'))) {
+            fileType = 'video/mp4';
+            fileName = 'video.mp4';
+            navType = 'video';
+          }
+          const blurResult = await detectBlur(selectedAsset.uri, fileType, fileName);
           console.log('Blur API result:', blurResult);
           navigation.navigate('Preview', {
             media: {
               uri: selectedAsset.uri,
-              type: selectedAsset.type || 'image',
+              type: navType,
               width: selectedAsset.width,
               height: selectedAsset.height,
               blurResult: blurResult,

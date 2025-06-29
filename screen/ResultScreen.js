@@ -1,4 +1,5 @@
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Video } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
@@ -141,13 +142,24 @@ const ResultScreen = ({ route, navigation }) => {
       <ScrollView style={styles.scrollView}>
         <View style={styles.mediaContainer}>
           {media.uri ? (
-            <Image
-              source={{ uri: media.uri }}
-              style={styles.mediaPreview}
-              resizeMode="cover"
-            />
+            media.type === 'video' ? (
+              <Video
+                source={{ uri: media.uri }}
+                style={styles.mediaPreview}
+                useNativeControls
+                resizeMode="contain"
+                shouldPlay={false}
+                isLooping
+              />
+            ) : (
+              <Image
+                source={{ uri: media.uri }}
+                style={styles.mediaPreview}
+                resizeMode="cover"
+              />
+            )
           ) : (
-            <Text style={{ color: 'red', textAlign: 'center' }}>No image to display</Text>
+            <Text style={{ color: 'red', textAlign: 'center' }}>No media to display</Text>
           )}
           <View 
             style={[

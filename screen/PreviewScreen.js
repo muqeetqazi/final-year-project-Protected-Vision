@@ -17,23 +17,24 @@ const PreviewScreen = ({ route, navigation }) => {
       setUploading(true);
       setUploadStatus('');
       try {
-         // Use the processed image from blurResult if available
          let processedUri = media.blurResult;
          if (!processedUri) {
-           setUploadStatus('No processed image found.');
-           setUploading(false);
-           return;
+            setUploadStatus('No processed image found.');
+            setUploading(false);
+            return;
          }
-         // If it's base64, add prefix
-         if (!processedUri.startsWith('http') && !processedUri.startsWith('file:')) {
-           processedUri = `data:image/jpeg;base64,${processedUri}`;
+         // If it's base64 and video, add prefix
+         if (media.type === 'video' && !processedUri.startsWith('http') && !processedUri.startsWith('file:')) {
+            processedUri = `data:video/mp4;base64,${processedUri}`;
+         } else if (!processedUri.startsWith('http') && !processedUri.startsWith('file:')) {
+            processedUri = `data:image/jpeg;base64,${processedUri}`;
          }
-         // Navigate to Result screen with processed image
          navigation.navigate('Result', {
-           media: {
-             ...media,
-             uri: processedUri // show processed image
-           }
+            media: {
+               ...media,
+               uri: processedUri,
+               type: media.type
+            }
          });
       } catch (error) {
          setUploadStatus('An error occurred during document analysis.');
