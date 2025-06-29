@@ -1,9 +1,12 @@
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Notifications from 'expo-notifications';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
+  Modal,
   Platform,
   ScrollView,
   StatusBar,
@@ -22,6 +25,7 @@ const { width, height } = Dimensions.get('window');
 const HomeScreen = ({ navigation }) => {
   const theme = useTheme();
   const [selectedMedia, setSelectedMedia] = useState(null);
+  const [processing, setProcessing] = useState(false);
 
   const carouselData = [
     {
@@ -138,6 +142,7 @@ const HomeScreen = ({ navigation }) => {
         }
 
         setSelectedMedia(selectedAsset);
+        setProcessing(true);
         try {
           let fileType = 'image/jpeg';
           let fileName = 'image.jpg';
@@ -148,7 +153,14 @@ const HomeScreen = ({ navigation }) => {
             navType = 'video';
           }
           const blurResult = await detectBlur(selectedAsset.uri, fileType, fileName);
-          console.log('Blur API result:', blurResult);
+          setProcessing(false);
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Processing Complete',
+              body: 'Your result is ready to view.',
+            },
+            trigger: null,
+          });
           navigation.navigate('Preview', {
             media: {
               uri: selectedAsset.uri,
@@ -159,10 +171,12 @@ const HomeScreen = ({ navigation }) => {
             }
           });
         } catch (apiError) {
+          setProcessing(false);
           alert('Blur detection API error: ' + apiError.message);
         }
       }
     } catch (error) {
+      setProcessing(false);
       console.error('Error picking media:', error);
       alert('Error accessing media. Please try again.');
     }
@@ -295,6 +309,19 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={processing}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.processingOverlay}>
+          <View style={styles.processingBox}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={styles.processingText}>Processing your media...</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -454,6 +481,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 12,
+  },
+  processingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+  },
+  processingBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  processingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
   },
 });
 

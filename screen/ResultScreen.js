@@ -1,6 +1,7 @@
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -109,6 +110,21 @@ const ResultScreen = ({ route, navigation }) => {
     );
   };
 
+  const handleDownload = async () => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission required', 'Please allow access to your media library to save the file.');
+        return;
+      }
+      const asset = await MediaLibrary.createAssetAsync(media.uri);
+      await MediaLibrary.createAlbumAsync('ProtectedVision', asset, false);
+      Alert.alert('Success', 'File saved to your gallery!');
+    } catch (error) {
+      Alert.alert('Error', 'Could not save the file.');
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
@@ -171,6 +187,22 @@ const ResultScreen = ({ route, navigation }) => {
               {riskLevel.toUpperCase()} RISK
             </Text>
           </View>
+        </View>
+
+        <View style={{ alignItems: 'center', marginVertical: 16 }}>
+          <TouchableOpacity
+            style={{
+              backgroundColor: theme.colors.primary,
+              padding: 12,
+              borderRadius: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
+            onPress={handleDownload}
+          >
+            <FontAwesome name="download" size={20} color="#fff" />
+            <Text style={{ color: '#fff', fontWeight: 'bold', marginLeft: 8 }}>Download Result</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={[styles.summaryCard, { backgroundColor: theme.colors.surface }]}>
