@@ -1,19 +1,20 @@
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Image,
-    ScrollView,
-    Share,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useTheme } from '../app/context/ThemeContext';
 
@@ -22,29 +23,23 @@ const { width } = Dimensions.get('window');
 const ResultScreen = ({ route, navigation }) => {
   const theme = useTheme();
   const { media } = route.params;
-  const [loading, setLoading] = useState(true);
-  const [results, setResults] = useState(null);
-  const [riskLevel, setRiskLevel] = useState('high');
+  const [loading, setLoading] = useState(false);
+  const [counts, setCounts] = useState({
+    detectionTypes: 0,
+    detections: 0,
+    processingTime: '0ms',
+  });
+  const [riskLevel, setRiskLevel] = useState('low');
 
   useEffect(() => {
-    // Simulate API call to analyze image
-    const timer = setTimeout(() => {
-      const mockResults = {
-        sensitiveContent: [
-          { type: 'credit_card', confidence: 0.98, count: 1 },
-          { type: 'address', confidence: 0.85, count: 1 },
-          { type: 'phone_number', confidence: 0.92, count: 2 },
-        ],
-        riskLevel: 'high',
-        processingTime: '1.2s',
-      };
-      
-      setResults(mockResults);
-      setRiskLevel(mockResults.riskLevel);
-      setLoading(false);
-    }, 2000);
-    
-    return () => clearTimeout(timer);
+    const meta = media?.meta || {};
+    const detections = Number(meta?.detections || 0);
+    const detectionTypes = Number(meta?.detectionTypes || 0);
+    const processingTime = meta?.processingTime || '0ms';
+
+    setCounts({ detectionTypes, detections, processingTime });
+    setRiskLevel(detections > 0 ? 'high' : 'low');
+    setLoading(false);
   }, []);
 
   const getRiskColor = (risk) => {
@@ -117,7 +112,27 @@ const ResultScreen = ({ route, navigation }) => {
         Alert.alert('Permission required', 'Please allow access to your media library to save the file.');
         return;
       }
-      const asset = await MediaLibrary.createAssetAsync(media.uri);
+
+      let localUri = media.uri;
+
+      // If data URI (base64), write to a temp file first
+      if (typeof localUri === 'string' && localUri.startsWith('data:')) {
+        const isVideo = media.type === 'video' || localUri.startsWith('data:video');
+        const ext = isVideo ? 'mp4' : 'jpg';
+        const tempPath = `${FileSystem.cacheDirectory}protectedvision_${Date.now()}.${ext}`;
+        const base64 = localUri.substring(localUri.indexOf('base64,') + 7);
+        await FileSystem.writeAsStringAsync(tempPath, base64, { encoding: FileSystem.EncodingType.Base64 });
+        localUri = tempPath;
+      } else if (typeof localUri === 'string' && localUri.startsWith('http')) {
+        // If remote URL, download to a local file
+        const isVideo = media.type === 'video';
+        const ext = isVideo ? 'mp4' : 'jpg';
+        const tempPath = `${FileSystem.cacheDirectory}protectedvision_${Date.now()}.${ext}`;
+        const { uri: downloadedUri } = await FileSystem.downloadAsync(localUri, tempPath);
+        localUri = downloadedUri;
+      }
+
+      const asset = await MediaLibrary.createAssetAsync(localUri);
       await MediaLibrary.createAlbumAsync('ProtectedVision', asset, false);
       Alert.alert('Success', 'File saved to your gallery!');
     } catch (error) {
@@ -184,7 +199,7 @@ const ResultScreen = ({ route, navigation }) => {
             ]}
           >
             <Text style={styles.riskText}>
-              {riskLevel.toUpperCase()} RISK
+              {riskLevel === 'high' ? 'HIGH RISK' : 'NO RISK'}
             </Text>
           </View>
         </View>
@@ -212,7 +227,7 @@ const ResultScreen = ({ route, navigation }) => {
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryValue, { color: theme.colors.text }]}>
-                {results.sensitiveContent.length}
+                {counts.detectionTypes}
               </Text>
               <Text style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}>
                 Types Detected
@@ -221,16 +236,16 @@ const ResultScreen = ({ route, navigation }) => {
             <View style={styles.summaryDivider} />
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryValue, { color: theme.colors.text }]}>
-                {results.sensitiveContent.reduce((acc, item) => acc + item.count, 0)}
+                {counts.detections}
               </Text>
               <Text style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}>
-                Total Instances
+                Total Detections
               </Text>
             </View>
             <View style={styles.summaryDivider} />
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryValue, { color: theme.colors.text }]}>
-                {results.processingTime}
+                {counts.processingTime}
               </Text>
               <Text style={[styles.summaryLabel, { color: theme.colors.textSecondary }]}>
                 Processing Time
@@ -239,54 +254,11 @@ const ResultScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        <View style={[styles.detailsCard, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
-            Detected Sensitive Information
-          </Text>
-          
-          {results.sensitiveContent.map((item, index) => {
-            const iconInfo = getContentTypeIcon(item.type);
-            const IconComponent = iconInfo.component;
-            
-            return (
-              <View 
-                key={index} 
-                style={[
-                  styles.detailItem, 
-                  index < results.sensitiveContent.length - 1 && 
-                  { borderBottomWidth: 1, borderBottomColor: theme.colors.border }
-                ]}
-              >
-                <View style={[styles.iconContainer, { backgroundColor: theme.colors.primaryLight }]}>
-                  <IconComponent name={iconInfo.name} size={20} color={theme.colors.primary} />
-                </View>
-                <View style={styles.detailContent}>
-                  <Text style={[styles.detailType, { color: theme.colors.text }]}>
-                    {item.type.split('_').map(word => 
-                      word.charAt(0).toUpperCase() + word.slice(1)
-                    ).join(' ')}
-                  </Text>
-                  <Text style={[styles.detailCount, { color: theme.colors.textSecondary }]}>
-                    {item.count} {item.count === 1 ? 'instance' : 'instances'} detected
-                  </Text>
-                </View>
-                <View style={styles.confidenceContainer}>
-                  <Text 
-                    style={[
-                      styles.confidenceText, 
-                      { color: item.confidence > 0.9 ? '#FF4D4F' : '#FAAD14' }
-                    ]}
-                  >
-                    {Math.round(item.confidence * 100)}%
-                  </Text>
-                  <Text style={[styles.confidenceLabel, { color: theme.colors.textSecondary }]}>
-                    confidence
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
+        {counts.detections === 0 ? (
+          <View style={[styles.detailsCard, { backgroundColor: theme.colors.surface }]}> 
+            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>No detections found</Text>
+          </View>
+        ) : null}
 
         <View style={[styles.recommendationsCard, { backgroundColor: theme.colors.surface }]}>
           <Text style={[styles.cardTitle, { color: theme.colors.text }]}>

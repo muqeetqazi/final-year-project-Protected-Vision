@@ -26,6 +26,8 @@ const HomeScreen = ({ navigation }) => {
   const theme = useTheme();
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [modelModalVisible, setModelModalVisible] = useState(false);
+  const [pendingPickerType, setPendingPickerType] = useState(null);
 
   const carouselData = [
     {
@@ -111,7 +113,7 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const handleMediaPicker = async (type) => {
+  const handleMediaPicker = async (type, model = 'auto') => {
     try {
       const baseOptions = {
         allowsEditing: true,
@@ -152,13 +154,19 @@ const HomeScreen = ({ navigation }) => {
             fileName = 'video.mp4';
             navType = 'video';
           }
-          const blurResult = await detectBlur(selectedAsset.uri, fileType, fileName);
+
+          const API_KEY = undefined; // set your advanced key if provided
+
+          const resultPayload = await detectBlur(
+            selectedAsset.uri,
+            fileType,
+            fileName,
+            model,
+            API_KEY
+          );
           setProcessing(false);
           await Notifications.scheduleNotificationAsync({
-            content: {
-              title: 'Processing Complete',
-              body: 'Your result is ready to view.',
-            },
+            content: { title: 'Processing Complete', body: 'Your result is ready to view.' },
             trigger: null,
           });
           navigation.navigate('Preview', {
@@ -167,7 +175,8 @@ const HomeScreen = ({ navigation }) => {
               type: navType,
               width: selectedAsset.width,
               height: selectedAsset.height,
-              blurResult: blurResult,
+              blurResult: resultPayload?.base64,
+              meta: resultPayload?.meta,
             }
           });
         } catch (apiError) {
@@ -271,7 +280,10 @@ const HomeScreen = ({ navigation }) => {
           
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => handleMediaPicker('gallery')}
+            onPress={() => {
+              setPendingPickerType('gallery');
+              setModelModalVisible(true);
+            }}
           >
             <LinearGradient
               colors={[theme.colors.primary, theme.isDarkMode ? '#2c0233' : '#7a1a87']}
@@ -319,6 +331,32 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.processingBox}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
             <Text style={styles.processingText}>Processing your media...</Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Model Selection Modal */}
+      <Modal
+        visible={modelModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModelModalVisible(false)}
+      >
+        <View style={styles.modelOverlay}>
+          <View style={[styles.modelBox, { backgroundColor: theme.colors.surface }]}> 
+            <Text style={[styles.modelTitle, { color: theme.colors.text }]}>Choose Model</Text>
+            <TouchableOpacity style={styles.modelButton} onPress={() => { setModelModalVisible(false); handleMediaPicker(pendingPickerType || 'gallery', 'auto'); }}>
+              <Text style={styles.modelButtonText}>Auto</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modelButton} onPress={() => { setModelModalVisible(false); handleMediaPicker(pendingPickerType || 'gallery', 'plate'); }}>
+              <Text style={styles.modelButtonText}>Plate</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modelButton} onPress={() => { setModelModalVisible(false); handleMediaPicker(pendingPickerType || 'gallery', 'card'); }}>
+              <Text style={styles.modelButtonText}>Card</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.modelButton, { marginTop: 8 }]} onPress={() => setModelModalVisible(false)}>
+              <Text style={styles.modelCancelText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -510,6 +548,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+  },
+  modelOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modelBox: {
+    padding: 20,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  modelTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  modelButton: {
+    paddingVertical: 12,
+  },
+  modelButtonText: {
+    fontSize: 16,
+    color: '#43034d',
+  },
+  modelCancelText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
   },
 });
 
