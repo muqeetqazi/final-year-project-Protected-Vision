@@ -16,12 +16,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
+// import { UserStatsService } from '../app/services/UserStatsService'; // Temporarily disabled
 
 const { width } = Dimensions.get('window');
 
 const ResultScreen = ({ route, navigation }) => {
   const theme = useTheme();
+  const { incrementDocumentShared } = useAuth();
   const { media } = route.params;
   const [loading, setLoading] = useState(false);
   const [counts, setCounts] = useState({
@@ -83,19 +86,26 @@ const ResultScreen = ({ route, navigation }) => {
       await Share.share({
         message: 'Check out this sensitive content analysis from Protected Vision!',
       });
+      
+      // Update backend that document was shared (temporarily disabled)
+      // const shareData = {
+      //   document_id: media.documentId, // This should be passed from HomeScreen
+      //   share_date: new Date().toISOString(),
+      //   share_method: 'native_share',
+      // };
+      
+      // const shareResult = await UserStatsService.shareDocument(shareData);
+      // if (shareResult.success) {
+      //   // Increment document shared counter
+      //   await incrementDocumentShared();
+      //   console.log('Document share recorded');
+      // }
     } catch (error) {
       Alert.alert('Error', 'Could not share the results');
     }
   };
 
-  const handleSave = () => {
-    Alert.alert(
-      'Success',
-      'Results saved to your history',
-      [{ text: 'OK' }]
-    );
-    navigation.navigate('History');
-  };
+  // handleSave function removed - replaced with download functionality
 
   const handleRedact = () => {
     Alert.alert(
@@ -204,21 +214,7 @@ const ResultScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        <View style={{ alignItems: 'center', marginVertical: 16 }}>
-          <TouchableOpacity
-            style={{
-              backgroundColor: theme.colors.primary,
-              padding: 12,
-              borderRadius: 8,
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}
-            onPress={handleDownload}
-          >
-            <FontAwesome name="download" size={20} color="#fff" />
-            <Text style={{ color: '#fff', fontWeight: 'bold', marginLeft: 8 }}>Download Result</Text>
-          </TouchableOpacity>
-        </View>
+
 
         <View style={[styles.summaryCard, { backgroundColor: theme.colors.surface }]}>
           <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
@@ -297,11 +293,12 @@ const ResultScreen = ({ route, navigation }) => {
 
         <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: theme.colors.secondary }]} 
-            onPress={handleSave}
+            onPress={handleDownload}
         >
-            <FontAwesome name="save" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Save</Text>
+            <FontAwesome name="download" size={20} color="#fff" />
+            <Text style={styles.actionButtonText}>Download</Text>
         </TouchableOpacity>
+        
       </View>
       </ScrollView>
     </View>
@@ -403,7 +400,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   summaryValue: {
-    fontSize: 24,
+    fontSize: 17,
     fontWeight: 'bold',
     marginBottom: 4,
   },

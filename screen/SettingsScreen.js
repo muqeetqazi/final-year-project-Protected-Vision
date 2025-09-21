@@ -13,7 +13,7 @@ import {
 import { useTheme, useThemeUpdate } from '../app/context/ThemeContext';
 
 import { scheduleNotification } from '../app/services/NotificationService';
-const SettingsScreen = () => {
+const SettingsScreen = ({ navigation }) => {
   const theme = useTheme();
   const toggleTheme = useThemeUpdate();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -161,49 +161,31 @@ const SettingsScreen = () => {
           'biometric-toggle'
         )} */}
         
-        {renderSectionHeader('Data Management')}
-        {renderSettingItem(
-          'cloud-upload',
-          'FontAwesome',
-          'Cloud Sync',
-          'Sync your data across multiple devices',
-          cloudSyncEnabled,
-          () => setCloudSyncEnabled(!cloudSyncEnabled),
-          'cloud-toggle'
-        )}
-        {/* {renderSettingItem(
-          'backup',
-          'MaterialIcons',
-          'Auto Backup',
-          'Automatically backup your data weekly',
-          dataBackupEnabled,
-          () => setDataBackupEnabled(!dataBackupEnabled),
-          'backup-toggle'
-        )} */}
-        {/* {renderSettingItem(
-          'auto-delete',
-          'MaterialIcons',
-          'Auto Delete',
-          'Automatically delete processed files after 30 days',
-          autoDeleteEnabled,
-          () => setAutoDeleteEnabled(!autoDeleteEnabled),
-          'auto-delete-toggle'
-        )} */}
+        
 
         <View style={styles.aboutSection}>
-          <TouchableOpacity style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}>
+          <TouchableOpacity 
+            style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}
+            onPress={() => navigation.navigate('HelpSupport')}
+          >
             <Ionicons name="help-circle" size={24} color={theme.colors.primary} />
             <Text style={[styles.aboutItemText, { color: theme.colors.text }]}>Help & Support</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}>
+          <TouchableOpacity 
+            style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+          >
             <Ionicons name="document-text" size={24} color={theme.colors.primary} />
             <Text style={[styles.aboutItemText, { color: theme.colors.text }]}>Privacy Policy</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}>
+          <TouchableOpacity 
+            style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}
+            onPress={() => navigation.navigate('About')}
+          >
             <Ionicons name="information-circle" size={24} color={theme.colors.primary} />
             <Text style={[styles.aboutItemText, { color: theme.colors.text }]}>About</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />

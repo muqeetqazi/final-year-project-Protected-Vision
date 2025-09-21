@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+// import UserStats from '../app/components/UserStats'; // Temporarily disabled
 import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
 
@@ -88,26 +89,10 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </LinearGradient>
 
-        {/* Stats Section */}
-        <View style={[styles.statsContainer, { 
-          backgroundColor: theme.colors.surface,
-          shadowColor: theme.isDarkMode ? '#000' : '#666'
-        }]}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.colors.primary }]}>{userData.processedFiles}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Processed</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.colors.primary }]}>{userData.savedFiles}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Saved</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.colors.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: theme.colors.primary }]}>{userData.sharedFiles}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Shared</Text>
-          </View>
-        </View>
+        {/* User Stats Section - Temporarily disabled */}
+        {/* <View style={styles.userStatsContainer}>
+          <UserStats />
+        </View> */}
 
         {/* Menu Items */}
         <View style={[styles.menuContainer, { 
@@ -252,35 +237,10 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
     marginTop: 5,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  userStatsContainer: {
     margin: 20,
     marginTop: -20,
-    padding: 20,
-    borderRadius: 15,
-    elevation: 5,
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  statLabel: {
-    fontSize: 14,
-    marginTop: 5,
-  },
-  statDivider: {
-    width: 1,
-    height: '100%',
+    flex: 1,
   },
   menuContainer: {
     margin: 20,

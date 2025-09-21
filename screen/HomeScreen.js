@@ -1,33 +1,31 @@
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Notifications from 'expo-notifications';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Dimensions,
-  Modal,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Dimensions,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
+import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
-import { detectBlur } from '../app/services/BlurDetectionService';
+// import { detectBlur } from '../app/services/BlurDetectionService'; // Moved to PreviewScreen
 import NotificationService from '../app/services/NotificationService';
+// import { UserStatsService } from '../app/services/UserStatsService'; // Temporarily disabled
 import CarouselComponent from './components/Carousel';
 
 const { width, height } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
   const theme = useTheme();
+  const { incrementDocumentSaved, incrementDocumentProcessed, incrementSensitiveDetected, incrementNonDetected } = useAuth();
   const [selectedMedia, setSelectedMedia] = useState(null);
-  const [processing, setProcessing] = useState(false);
-  const [modelModalVisible, setModelModalVisible] = useState(false);
-  const [pendingPickerType, setPendingPickerType] = useState(null);
+  // Processing moved to PreviewScreen
 
   const carouselData = [
     {
@@ -113,7 +111,7 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const handleMediaPicker = async (type, model = 'auto') => {
+  const handleMediaPicker = async (type) => {
     try {
       const baseOptions = {
         allowsEditing: true,
@@ -144,48 +142,27 @@ const HomeScreen = ({ navigation }) => {
         }
 
         setSelectedMedia(selectedAsset);
-        setProcessing(true);
-        try {
-          let fileType = 'image/jpeg';
-          let fileName = 'image.jpg';
+        
+        // Determine file type for navigation
           let navType = 'image';
           if (selectedAsset.type === 'video' || (selectedAsset.uri && selectedAsset.uri.endsWith('.mp4'))) {
-            fileType = 'video/mp4';
-            fileName = 'video.mp4';
             navType = 'video';
           }
 
-          const API_KEY = undefined; // set your advanced key if provided
-
-          const resultPayload = await detectBlur(
-            selectedAsset.uri,
-            fileType,
-            fileName,
-            model,
-            API_KEY
-          );
-          setProcessing(false);
-          await Notifications.scheduleNotificationAsync({
-            content: { title: 'Processing Complete', body: 'Your result is ready to view.' },
-            trigger: null,
-          });
+        // Navigate directly to PreviewScreen without processing
+        // Processing will happen in PreviewScreen when user clicks "Analyze"
           navigation.navigate('Preview', {
             media: {
               uri: selectedAsset.uri,
               type: navType,
               width: selectedAsset.width,
               height: selectedAsset.height,
-              blurResult: resultPayload?.base64,
-              meta: resultPayload?.meta,
+            // No processing results yet - will be generated in PreviewScreen
+            documentId: null, // Pass document ID for sharing (temporarily disabled)
             }
           });
-        } catch (apiError) {
-          setProcessing(false);
-          alert('Blur detection API error: ' + apiError.message);
-        }
       }
     } catch (error) {
-      setProcessing(false);
       console.error('Error picking media:', error);
       alert('Error accessing media. Please try again.');
     }
@@ -280,10 +257,7 @@ const HomeScreen = ({ navigation }) => {
           
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => {
-              setPendingPickerType('gallery');
-              setModelModalVisible(true);
-            }}
+            onPress={() => handleMediaPicker('gallery')}
           >
             <LinearGradient
               colors={[theme.colors.primary, theme.isDarkMode ? '#2c0233' : '#7a1a87']}
@@ -322,44 +296,9 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </ScrollView>
 
-      <Modal
-        visible={processing}
-        transparent
-        animationType="fade"
-      >
-        <View style={styles.processingOverlay}>
-          <View style={styles.processingBox}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={styles.processingText}>Processing your media...</Text>
-          </View>
-        </View>
-      </Modal>
+      {/* Processing moved to PreviewScreen */}
 
-      {/* Model Selection Modal */}
-      <Modal
-        visible={modelModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModelModalVisible(false)}
-      >
-        <View style={styles.modelOverlay}>
-          <View style={[styles.modelBox, { backgroundColor: theme.colors.surface }]}> 
-            <Text style={[styles.modelTitle, { color: theme.colors.text }]}>Choose Model</Text>
-            <TouchableOpacity style={styles.modelButton} onPress={() => { setModelModalVisible(false); handleMediaPicker(pendingPickerType || 'gallery', 'auto'); }}>
-              <Text style={styles.modelButtonText}>Auto</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modelButton} onPress={() => { setModelModalVisible(false); handleMediaPicker(pendingPickerType || 'gallery', 'plate'); }}>
-              <Text style={styles.modelButtonText}>Plate</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modelButton} onPress={() => { setModelModalVisible(false); handleMediaPicker(pendingPickerType || 'gallery', 'card'); }}>
-              <Text style={styles.modelButtonText}>Card</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.modelButton, { marginTop: 8 }]} onPress={() => setModelModalVisible(false)}>
-              <Text style={styles.modelCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Model selection moved to PreviewScreen */}
     </View>
   );
 };
@@ -519,62 +458,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 12,
-  },
-  processingOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 100,
-  },
-  processingBox: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  processingText: {
-    marginTop: 16,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  modelOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  modelBox: {
-    padding: 20,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-  },
-  modelTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-  modelButton: {
-    paddingVertical: 12,
-  },
-  modelButtonText: {
-    fontSize: 16,
-    color: '#43034d',
-  },
-  modelCancelText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
   },
 });
 

@@ -1,10 +1,9 @@
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Dimensions,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -37,7 +36,7 @@ const AuthScreen = ({ navigation }) => {
   useEffect(() => {
     clearError();
     setValidationErrors({});
-  }, [isLogin, clearError]);
+  }, [isLogin]);
 
   // Navigate to Home when authenticated
   useEffect(() => {
@@ -48,14 +47,14 @@ const AuthScreen = ({ navigation }) => {
 
   const validateForm = () => {
     const errors = {};
-
+    
     // Email validation
     if (!email.trim()) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       errors.email = 'Please enter a valid email address';
     }
-
+    
     // Password validation
     if (!password.trim()) {
       errors.password = 'Password is required';
@@ -92,17 +91,17 @@ const AuthScreen = ({ navigation }) => {
 
     clearError();
 
-    if (isLogin) {
+      if (isLogin) {
       const result = await login(email.trim(), password);
-      if (result.success) {
-        navigation.replace('Home');
-      } else {
+        if (result.success) {
+          navigation.replace('Home');
+        } else {
         Alert.alert('Login Failed', result.error || 'Invalid credentials');
-      }
-    } else {
+        }
+      } else {
       const userData = {
         email: email.trim(),
-        password,
+          password,
         password2: confirmPassword,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -110,7 +109,7 @@ const AuthScreen = ({ navigation }) => {
       };
 
       const result = await register(userData);
-      if (result.success) {
+        if (result.success) {
         Alert.alert(
           'Registration Successful',
           result.message || 'Account created successfully. Please login.',
@@ -129,9 +128,9 @@ const AuthScreen = ({ navigation }) => {
             }
           ]
         );
-      } else {
+        } else {
         Alert.alert('Registration Failed', result.error || 'Failed to create account');
-      }
+        }
     }
   };
 
@@ -156,11 +155,9 @@ const AuthScreen = ({ navigation }) => {
           style={styles.headerGradient}
         >
           <View style={styles.logoContainer}>
-          <Image
-              source={require('../assets/images/icon.png')}
-            style={styles.logo}
-              resizeMode="contain"
-          />
+            <View style={[styles.shieldContainer, { borderColor: '#fff' }]}>
+              <Ionicons name="shield" size={60} color="#fff" />
+            </View>
             <Text style={styles.appName}>Protected Vision</Text>
             <Text style={styles.tagline}>
               Secure your sensitive information with AI
@@ -227,27 +224,27 @@ const AuthScreen = ({ navigation }) => {
                     />
                   </View>
                   {validationErrors.firstName && (
-                    <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                <Text style={[styles.errorText, { color: theme.colors.error }]}>
                       {validationErrors.firstName}
-                    </Text>
+                </Text>
                   )}
-                </View>
+              </View>
 
-                <View style={styles.inputGroup}>
+              <View style={styles.inputGroup}>
                   <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Last Name</Text>
-                  <View style={[
-                    styles.inputContainer, 
-                    { 
-                      backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                <View style={[
+                  styles.inputContainer, 
+                  { 
+                    backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5',
                       borderColor: validationErrors.lastName ? theme.colors.error : 'transparent',
                       borderWidth: validationErrors.lastName ? 1 : 0
-                    }
-                  ]}>
-                    <FontAwesome name="user" size={20} color={theme.colors.primary} style={styles.inputIcon} />
-                    <TextInput
-                      style={[styles.input, { color: theme.colors.text }]}
+                  }
+                ]}>
+                  <FontAwesome name="user" size={20} color={theme.colors.primary} style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, { color: theme.colors.text }]}
                       placeholder="Enter your last name"
-                      placeholderTextColor={theme.colors.textSecondary}
+                    placeholderTextColor={theme.colors.textSecondary}
                       value={lastName}
                       onChangeText={setLastName}
                     />
@@ -277,14 +274,14 @@ const AuthScreen = ({ navigation }) => {
                       value={username}
                       onChangeText={setUsername}
                       autoCapitalize="none"
-                    />
-                  </View>
+                  />
+                </View>
                   {validationErrors.username && (
                     <Text style={[styles.errorText, { color: theme.colors.error }]}>
                       {validationErrors.username}
-                    </Text>
-                  )}
-                </View>
+                  </Text>
+                )}
+              </View>
               </>
             )}
 
@@ -405,7 +402,7 @@ const AuthScreen = ({ navigation }) => {
               onPress={handleAuth}
               disabled={isLoading}
             >
-              <Text style={styles.authButtonText}>
+                  <Text style={styles.authButtonText}>
                 {isLoading ? 'Processing...' : (isLogin ? 'Login' : 'Sign Up')}
               </Text>
             </TouchableOpacity>
@@ -415,9 +412,9 @@ const AuthScreen = ({ navigation }) => {
                 <FontAwesome name="exclamation-triangle" size={16} color={theme.colors.error} />
                 <Text style={[styles.errorMessage, { color: theme.colors.error }]}>
                   {error}
-                </Text>
-              </View>
-            )}
+                  </Text>
+                </View>
+              )}
 
             <View style={styles.orContainer}>
               <View style={[styles.orLine, { backgroundColor: theme.colors.border }]} />
@@ -479,9 +476,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logo: {
+  shieldContainer: {
     width: 100,
     height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 10,
   },
   appName: {

@@ -4,15 +4,18 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 
 // Import the screen components
-//import AboutScreen from './AboutScreen'; // Adjust path if needed
+import AboutScreen from '../screen/AboutScreen';
 import AuthScreen from '../screen/AuthScreen';
 import DashboardScreen from '../screen/DashboardScreen';
+import HelpSupportScreen from '../screen/HelpSupportScreen';
 import HistoryScreen from '../screen/HistoryScreen';
 import HomeScreen from '../screen/HomeScreen';
 import PreviewScreen from '../screen/PreviewScreen';
+import PrivacyPolicyScreen from '../screen/PrivacyPolicyScreen';
 import ProfileScreen from '../screen/ProfileScreen';
 import ResultScreen from '../screen/ResultScreen';
 import SettingsScreen from '../screen/SettingsScreen';
+import SplashScreen from '../screen/SplashScreen';
 
 
 
@@ -23,11 +26,12 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <Stack.Navigator
-          initialRouteName="Auth"
+          initialRouteName="Splash"
           screenOptions={{
             headerShown: false,
           }}
         >
+          <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Auth" component={AuthScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Preview" component={PreviewScreen} />
@@ -36,6 +40,9 @@ export default function App() {
           <Stack.Screen name="History" component={HistoryScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+          <Stack.Screen name="About" component={AboutScreen} />
         </Stack.Navigator>
       </ThemeProvider>
     </AuthProvider>
