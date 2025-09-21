@@ -113,4 +113,7 @@ export const ThemeProvider = ({ children }) => {
 };
 
 export const useTheme = () => useContext(ThemeContext);
-export const useThemeUpdate = () => useContext(ThemeUpdateContext); 
+export const useThemeUpdate = () => useContext(ThemeUpdateContext);
+
+// Default export for the provider
+export default ThemeProvider; 

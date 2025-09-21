@@ -38,4 +38,7 @@ export const detectBlur = async (fileUri, fileType, fileName, model = 'auto', ap
   } catch (error) {
     throw error;
   }
-}; 
+};
+
+// Default export
+export default { detectBlur }; 

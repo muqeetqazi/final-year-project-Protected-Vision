@@ -2,27 +2,38 @@ import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-  Image,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
+import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
 
 const ProfileScreen = ({ navigation }) => {
   const theme = useTheme();
+  const { user, logout } = useAuth();
+  
   const [userData] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    
+    name: user ? `${user.first_name} ${user.last_name}` : 'User',
+    email: user ? user.email : 'user@example.com',
     processedFiles: 12,
     savedFiles: 5,
     sharedFiles: 3,
   });
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigation.replace('Auth');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.primary }]}>
@@ -161,7 +172,7 @@ const ProfileScreen = ({ navigation }) => {
         {/* Logout Button */}
         <TouchableOpacity 
           style={[styles.logoutButton, { backgroundColor: theme.colors.error }]}
-          onPress={() => navigation.replace('Auth')}
+          onPress={handleLogout}
         >
           <FontAwesome name="sign-out" size={20} color="#fff" />
           <Text style={styles.logoutText}>Logout</Text>
