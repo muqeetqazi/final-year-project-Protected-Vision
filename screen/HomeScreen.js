@@ -1,8 +1,11 @@
 import { FontAwesome } from '@expo/vector-icons';
+import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import FormData from 'form-data';
 import React, { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     Dimensions,
     Platform,
     ScrollView,
@@ -16,7 +19,6 @@ import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
 // import { detectBlur } from '../app/services/BlurDetectionService'; // Moved to PreviewScreen
 import NotificationService from '../app/services/NotificationService';
-// import { UserStatsService } from '../app/services/UserStatsService'; // Temporarily disabled
 import CarouselComponent from './components/Carousel';
 
 const { width, height } = Dimensions.get('window');
@@ -25,6 +27,8 @@ const HomeScreen = ({ navigation }) => {
   const theme = useTheme();
   const { incrementDocumentSaved, incrementDocumentProcessed, incrementSensitiveDetected, incrementNonDetected } = useAuth();
   const [selectedMedia, setSelectedMedia] = useState(null);
+  const [documentId, setDocumentId] = useState(null);
+  const [uploading, setUploading] = useState(false);
   // Processing moved to PreviewScreen
 
   const carouselData = [
@@ -142,25 +146,113 @@ const HomeScreen = ({ navigation }) => {
         }
 
         setSelectedMedia(selectedAsset);
+        setUploading(true);
         
-        // Determine file type for navigation
-          let navType = 'image';
-          if (selectedAsset.type === 'video' || (selectedAsset.uri && selectedAsset.uri.endsWith('.mp4'))) {
-            navType = 'video';
-          }
-
-        // Navigate directly to PreviewScreen without processing
-        // Processing will happen in PreviewScreen when user clicks "Analyze"
-          navigation.navigate('Preview', {
-            media: {
-              uri: selectedAsset.uri,
-              type: navType,
-              width: selectedAsset.width,
-              height: selectedAsset.height,
-            // No processing results yet - will be generated in PreviewScreen
-            documentId: null, // Pass document ID for sharing (temporarily disabled)
-            }
+        try {
+          // Create FormData for Django upload
+          const formData = new FormData();
+          
+          const documentTitle = `Document ${new Date().toISOString()}`;
+          const fileType = selectedAsset.type === 'video' ? 'video' : 'image';
+          const fileName = selectedAsset.type === 'video' ? 'video.mp4' : 'image.jpg';
+          const mimeType = selectedAsset.type === 'video' ? 'video/mp4' : 'image/jpeg';
+          
+          formData.append("title", documentTitle);
+          formData.append("file_type", fileType);
+          formData.append("file", {
+            uri: selectedAsset.uri,
+            name: fileName,
+            type: mimeType,
           });
+
+          // Debugging: Log all form entries
+          console.log("=== FormData Debug ===");
+          for (let pair of formData.entries()) {
+            console.log(pair[0] + ": ", pair[1]);
+          }
+          console.log("=====================");
+
+          // Get access token for debugging
+          const { TokenManager } = require('../app/services/AuthService');
+          const accessToken = await TokenManager.getAccessToken();
+          
+          // Log request headers
+          console.log("Upload headers:", {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'multipart/form-data'
+          });
+
+          // Make direct axios call for better error handling
+          const { API_CONFIG } = require('../app/config/api');
+          
+          const uploadUrl = `${API_CONFIG.BASE_URL}/documents/`;
+          console.log("Upload URL:", uploadUrl);
+          
+          try {
+            const response = await axios.post(
+              uploadUrl,
+              formData,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  'Content-Type': 'multipart/form-data',
+                },
+              }
+            );
+            console.log("Upload success:", response.data);
+            
+            const uploadResult = {
+              success: true,
+              data: response.data
+            };
+            
+            if (uploadResult.success) {
+              const docId = uploadResult.data.id;
+              setDocumentId(docId);
+              
+              // Update local stats
+              await incrementDocumentSaved();
+              
+              // Determine file type for navigation
+              let navType = 'image';
+              if (selectedAsset.type === 'video' || (selectedAsset.uri && selectedAsset.uri.endsWith('.mp4'))) {
+                navType = 'video';
+              }
+
+              // Navigate to PreviewScreen with document ID
+              navigation.navigate('Preview', {
+                media: {
+                  uri: selectedAsset.uri,
+                  type: navType,
+                  width: selectedAsset.width,
+                  height: selectedAsset.height,
+                  documentId: docId, // Pass Django document ID
+                }
+              });
+            }
+            
+          } catch (axiosError) {
+            // Enhanced error logging
+            if (axiosError.response) {
+              console.log("Upload failed:", axiosError.response.status, axiosError.response.data);
+              console.log("Response headers:", axiosError.response.headers);
+              console.log("Request config:", axiosError.config);
+              alert(`Upload failed: ${axiosError.response.status} - ${JSON.stringify(axiosError.response.data)}`);
+            } else if (axiosError.request) {
+              console.log("Upload error - No response received:", axiosError.request);
+              alert('Upload failed: No response from server');
+            } else {
+              console.log("Upload error:", axiosError.message);
+              alert(`Upload error: ${axiosError.message}`);
+            }
+            return;
+          }
+        } catch (error) {
+          console.error('Upload error:', error);
+          alert('Error uploading document. Please try again.');
+        } finally {
+          setUploading(false);
+        }
       }
     } catch (error) {
       console.error('Error picking media:', error);
@@ -258,26 +350,46 @@ const HomeScreen = ({ navigation }) => {
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
             onPress={() => handleMediaPicker('gallery')}
+            disabled={uploading}
           >
             <LinearGradient
               colors={[theme.colors.primary, theme.isDarkMode ? '#2c0233' : '#7a1a87']}
               style={styles.actionButtonGradient}
             >
-              <FontAwesome name="file-image-o" size={24} color="#fff" />
-              <Text style={styles.buttonText}>Select Media from Gallery</Text>
+              {uploading ? (
+                <>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={styles.buttonText}>Uploading...</Text>
+                </>
+              ) : (
+                <>
+                  <FontAwesome name="file-image-o" size={24} color="#fff" />
+                  <Text style={styles.buttonText}>Select Media from Gallery</Text>
+                </>
+              )}
             </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
             onPress={() => handleMediaPicker('camera')}
+            disabled={uploading}
           >
             <LinearGradient
               colors={[theme.colors.primary, theme.isDarkMode ? '#2c0233' : '#7a1a87']}
               style={styles.actionButtonGradient}
             >
-              <FontAwesome name="camera" size={24} color="#fff" />
-              <Text style={styles.buttonText}>Capture Document with Camera</Text>
+              {uploading ? (
+                <>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={styles.buttonText}>Uploading...</Text>
+                </>
+              ) : (
+                <>
+                  <FontAwesome name="camera" size={24} color="#fff" />
+                  <Text style={styles.buttonText}>Capture Document with Camera</Text>
+                </>
+              )}
             </LinearGradient>
           </TouchableOpacity>
 

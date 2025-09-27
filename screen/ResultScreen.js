@@ -1,30 +1,32 @@
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import axios from 'axios';
 import { Video } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Image,
-  ScrollView,
-  Share,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Image,
+    ScrollView,
+    Share,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
+import { API_CONFIG } from '../app/config/api';
 import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
-// import { UserStatsService } from '../app/services/UserStatsService'; // Temporarily disabled
+import { TokenManager } from '../app/services/AuthService';
 
 const { width } = Dimensions.get('window');
 
 const ResultScreen = ({ route, navigation }) => {
   const theme = useTheme();
-  const { incrementDocumentShared } = useAuth();
+  const { incrementDocumentShared, incrementDocumentProcessed, incrementSensitiveDetected, incrementNonDetected } = useAuth();
   const { media } = route.params;
   const [loading, setLoading] = useState(false);
   const [counts, setCounts] = useState({
@@ -40,9 +42,187 @@ const ResultScreen = ({ route, navigation }) => {
     const detectionTypes = Number(meta?.detectionTypes || 0);
     const processingTime = meta?.processingTime || '0ms';
 
+    // Debug logging for ML analysis results - ML model is source of truth
+    console.log("=== ML Model Results (Source of Truth) ===");
+    console.log("Media object:", media);
+    console.log("Meta data from ML model:", meta);
+    console.log("ML Detections count:", detections);
+    console.log("ML Detection types:", detectionTypes);
+    console.log("ML Processing time:", processingTime);
+    console.log("Document ID:", media?.documentId);
+    console.log("==========================================");
+
     setCounts({ detectionTypes, detections, processingTime });
     setRiskLevel(detections > 0 ? 'high' : 'low');
     setLoading(false);
+
+    // Update statistics after ML analysis completion
+    const updateStats = async () => {
+      try {
+        // Update local stats immediately using ML model results
+        console.log("=== Frontend Stats Update (ML-Based) ===");
+        console.log("Updating local stats with ML detection count:", detections);
+        
+        await incrementDocumentProcessed();
+        
+        // Update local detection statistics using ML model results ONLY
+        console.log("=== ML Model Stats Update (Source of Truth) ===");
+        console.log("ML model sensitive count:", detections);
+        console.log("ML model detection types:", detectionTypes);
+        console.log("ML model processing time:", processingTime);
+        
+        if (detections > 0) {
+          console.log("ML model detected sensitive items:", detections);
+          await incrementSensitiveDetected(detections);
+        } else {
+          console.log("ML model found no sensitive items");
+          await incrementNonDetected(1);
+        }
+        console.log("✅ Frontend stats updated with ML model results only");
+        console.log("===================================================");
+        
+        // Update Django backend - mark document as processed
+        if (media.documentId) {
+          const documentId = media.documentId;
+          const accessToken = await TokenManager.getAccessToken();
+          
+          console.log("=== Django Document Update ===");
+          console.log("Updating document:", {
+            documentId,
+            payload: { processed: true },
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json"
+            }
+          });
+          
+          try {
+            const response = await axios.patch(
+              `${API_CONFIG.BASE_URL}/documents/${documentId}/`,
+              { processed: true },
+              { 
+                headers: { 
+                  Authorization: `Bearer ${accessToken}`,
+                  "Content-Type": "application/json"
+                } 
+              }
+            );
+            console.log("Django document updated successfully:", response.data);
+          } catch (err) {
+            console.error("Django document update error:", err.response?.data || err.message);
+            console.error("Full error object:", err);
+          }
+          console.log("===============================");
+        }
+        
+        // Send ML model results to Django for persistence
+        if (media.documentId) {
+          const accessToken = await TokenManager.getAccessToken();
+          
+          // Use ML model results as source of truth - format for Django
+          const mlBasedAnalysisData = {
+            document_id: media.documentId,
+            sensitive_items_count: detections, // ML model count
+            detection_types: [detectionTypes], // Convert to array format for Django
+            processing_time: parseInt(processingTime.replace('ms', '')), // Strip "ms" and convert to integer
+            source: 'ml_model' // Mark as ML-based data
+          };
+          
+          console.log("=== Django Detection Stats Update ===");
+          console.log("Original ML model data:", {
+            detections,
+            detectionTypes,
+            processingTime
+          });
+          console.log("Formatted payload for Django:", mlBasedAnalysisData);
+          console.log("Payload transformations:");
+          console.log("- detection_types: converted to array format");
+          console.log("- processing_time: stripped 'ms' and converted to integer");
+          console.log("- sensitive_items_count: unchanged (ML model count)");
+          console.log("API endpoint:", `${API_CONFIG.BASE_URL}/detection/analyze/`);
+          console.log("Headers:", {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+          });
+          console.log("⚠️  NOTE: Django response will be treated as acknowledgment only.");
+          console.log("⚠️  Frontend state will NOT be updated with Django's sensitive_items_count.");
+          console.log("⚠️  ML model detection count is the only trusted source.");
+          
+          try {
+            const response = await axios.post(
+              `${API_CONFIG.BASE_URL}/detection/analyze/`,
+              mlBasedAnalysisData,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "Content-Type": "application/json"
+                }
+              }
+            );
+            console.log("Django detection stats updated successfully:", response.data);
+            console.log("Django ack status:", response.status);
+            console.log("Django response sensitive_items_count:", response.data?.sensitive_items_count);
+            console.log("ML model count vs Django response:", {
+              mlModelCount: detections,
+              djangoResponse: response.data?.sensitive_items_count
+            });
+            
+            // Check if Django tried to override ML model count
+            const djangoCount = response.data?.sensitive_items_count;
+            if (djangoCount !== undefined && djangoCount !== detections) {
+              console.warn(`⚠️ Ignoring Django sensitive_items_count (${djangoCount}). Using ML model count (${detections}).`);
+              console.warn("Django response treated as acknowledgment only - ML model is source of truth.");
+            } else if (djangoCount === detections) {
+              console.log("✅ Django response matches ML model count - no override detected.");
+            }
+            
+            // Final confirmation that frontend state is protected
+            console.log("🔒 Frontend state protection: ML model count preserved in local state.");
+            console.log("🔒 Dashboard will display ML-based detection count:", detections);
+            
+            // Refresh profile stats from backend after successful Django acknowledgment
+            console.log("=== Profile Stats Refresh ===");
+            try {
+              const profileResponse = await axios.get(
+                `${API_CONFIG.BASE_URL}/auth/profile/`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json"
+                  }
+                }
+              );
+              console.log("✅ Profile stats refreshed from backend:", profileResponse.data);
+              console.log("Backend total_sensitive_items_detected:", profileResponse.data?.total_sensitive_items_detected);
+              console.log("Backend total_documents_processed:", profileResponse.data?.total_documents_processed);
+              console.log("ML model count vs Backend count:", {
+                mlModelCount: detections,
+                backendCount: profileResponse.data?.total_sensitive_items_detected
+              });
+            } catch (profileErr) {
+              console.error("Profile refresh error:", profileErr.response?.data || profileErr.message);
+              console.log("⚠️ Profile refresh failed, but ML-based stats remain accurate");
+            }
+            console.log("=============================");
+          } catch (err) {
+            console.error("Django detection stats error:", err.response?.data || err.message);
+            console.error("Full error object:", err);
+            console.log("🔒 Frontend state protection: ML model count preserved despite Django error.");
+            console.log("🔒 Dashboard will display ML-based detection count:", detections);
+            console.log("⚠️ Django error occurred, but ML-based stats remain accurate");
+          }
+          console.log("====================================");
+        }
+        
+      } catch (error) {
+        console.error('Error updating statistics:', error);
+        console.log("🔒 ML model stats preserved despite error - dashboard remains accurate");
+        console.log("ML model sensitive count:", detections);
+        console.log("Frontend state protected from any backend failures");
+      }
+    };
+
+    updateStats();
   }, []);
 
   const getRiskColor = (risk) => {

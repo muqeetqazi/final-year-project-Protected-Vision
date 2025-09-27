@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import AboutScreen from '../screen/AboutScreen';
 import AuthScreen from '../screen/AuthScreen';
 import DashboardScreen from '../screen/DashboardScreen';
+import EditProfileScreen from '../screen/EditProfileScreen';
 import HelpSupportScreen from '../screen/HelpSupportScreen';
 import HistoryScreen from '../screen/HistoryScreen';
 import HomeScreen from '../screen/HomeScreen';
@@ -37,6 +38,7 @@ export default function App() {
           <Stack.Screen name="Preview" component={PreviewScreen} />
           <Stack.Screen name="Result" component={ResultScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           <Stack.Screen name="History" component={HistoryScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />

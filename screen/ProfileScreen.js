@@ -2,30 +2,85 @@ import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-    Image,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 // import UserStats from '../app/components/UserStats'; // Temporarily disabled
+import axios from 'axios';
+import { API_CONFIG } from '../app/config/api';
 import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
+import { TokenManager } from '../app/services/AuthService';
 
 const ProfileScreen = ({ navigation }) => {
   const theme = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   
-  const [userData] = useState({
+  const [refreshing, setRefreshing] = useState(false);
+  const [userData, setUserData] = useState({
     name: user ? `${user.first_name} ${user.last_name}` : 'User',
     email: user ? user.email : 'user@example.com',
     processedFiles: 12,
     savedFiles: 5,
     sharedFiles: 3,
   });
+
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+      console.log('Refreshing profile data...');
+      
+      const accessToken = await TokenManager.getAccessToken();
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}/auth/profile/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('Profile refresh response:', response.data);
+      
+      // Update local user context with fresh data
+      updateUser(response.data);
+      
+      // Update local userData state
+      setUserData({
+        name: response.data ? `${response.data.first_name} ${response.data.last_name}` : 'User',
+        email: response.data ? response.data.email : 'user@example.com',
+        processedFiles: response.data?.total_documents_processed || 0,
+        savedFiles: response.data?.total_documents_saved || 0,
+        sharedFiles: response.data?.total_documents_shared || 0,
+      });
+      
+      console.log('Profile data refreshed successfully');
+    } catch (error) {
+      console.error('Profile refresh error:', error);
+      
+      if (error.response?.status === 401) {
+        // Handle token expiry
+        console.log('Token expired during refresh, logging out...');
+        await logout();
+        navigation.replace('Auth');
+        return;
+      }
+      
+      // For other errors, we'll just log them and continue
+      // The user can try refreshing again
+      console.log('Refresh failed, but user can try again');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -49,17 +104,42 @@ const ProfileScreen = ({ navigation }) => {
           <FontAwesome name="arrow-left" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity 
-          style={styles.settingsButton}
-          onPress={() => navigation.navigate('Settings')}
-        >
-          <FontAwesome name="cog" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity 
+            style={[styles.refreshButton, { opacity: refreshing ? 0.6 : 1 }]}
+            onPress={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <FontAwesome name="spinner" size={20} color="#fff" />
+            ) : (
+              <FontAwesome name="refresh" size={20} color="#fff" />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.settingsButton}
+            onPress={() => navigation.navigate('Settings')}
+          >
+            <FontAwesome name="cog" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView 
         style={[styles.content, { backgroundColor: theme.colors.background }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#fff"
+            title="Pull to refresh profile"
+            titleColor="#fff"
+            progressBackgroundColor="rgba(255,255,255,0.2)"
+            colors={['#fff']}
+            progressViewOffset={20}
+          />
+        }
       >
         {/* Profile Image Section */}
         <LinearGradient
@@ -121,7 +201,10 @@ const ProfileScreen = ({ navigation }) => {
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity> */}
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
+            onPress={() => navigation.navigate('EditProfile')}
+          >
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
               <FontAwesome name="user" size={20} color={theme.colors.primary} />
             </View>
@@ -185,6 +268,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  refreshButton: {
+    padding: 8,
+    marginRight: 10,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   settingsButton: {
     padding: 5,

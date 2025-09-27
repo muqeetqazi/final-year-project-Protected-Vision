@@ -3,6 +3,7 @@ import { Video } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
 import { detectBlur } from '../app/services/BlurDetectionService';
 
@@ -10,6 +11,7 @@ const { width, height } = Dimensions.get('window');
 
 const PreviewScreen = ({ route, navigation }) => {
    const { media } = route.params;
+   const { incrementDocumentSaved } = useAuth();
    const [uploading, setUploading] = useState(false);
    const [uploadStatus, setUploadStatus] = useState('');
    const [selectedModel, setSelectedModel] = useState('auto');
@@ -35,6 +37,9 @@ const PreviewScreen = ({ route, navigation }) => {
       setUploadStatus('Processing document...');
       
       try {
+         // Track document upload
+         await incrementDocumentSaved();
+         
          // Determine file type and name
          let fileType = 'image/jpeg';
          let fileName = 'image.jpg';

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import { AuthService } from '../services/AuthService';
-// import { UserStatsService } from '../services/UserStatsService'; // Temporarily disabled
+import { UserStatsService } from '../services/UserStatsService';
 
 // Initial state
 const initialState = {
@@ -246,22 +246,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loadUserStats = async () => {
-    // Temporarily disabled
-    // if (!state.isAuthenticated) return;
+    if (!state.isAuthenticated) return;
     
-    // dispatch({ type: AUTH_ACTIONS.SET_STATS_LOADING, payload: true });
+    dispatch({ type: AUTH_ACTIONS.SET_STATS_LOADING, payload: true });
     
-    // try {
-    //   const result = await UserStatsService.getUserStats();
-    //   if (result.success) {
-    //     dispatch({
-    //       type: AUTH_ACTIONS.SET_USER_STATS,
-    //       payload: { stats: result.data },
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.error('Load user stats error:', error);
-    // }
+    try {
+      const result = await UserStatsService.getUserStats();
+      if (result.success) {
+        dispatch({
+          type: AUTH_ACTIONS.SET_USER_STATS,
+          payload: { stats: result.data },
+        });
+      }
+    } catch (error) {
+      console.error('Load user stats error:', error);
+    }
   };
 
   const updateUserStats = (updates) => {
@@ -272,65 +271,58 @@ export const AuthProvider = ({ children }) => {
   };
 
   const incrementDocumentSaved = async () => {
-    // Temporarily disabled
-    // const newValue = (state.userStats.total_documents_saved || 0) + 1;
-    // updateUserStats({
-    //   total_documents_saved: newValue,
-    // });
-    // // Sync with backend
-    // await syncStatsWithBackend();
+    const newValue = (state.userStats.total_documents_saved || 0) + 1;
+    updateUserStats({
+      total_documents_saved: newValue,
+    });
+    // Sync with backend
+    await syncStatsWithBackend();
   };
 
   const incrementDocumentProcessed = async () => {
-    // Temporarily disabled
-    // const newValue = (state.userStats.total_documents_processed || 0) + 1;
-    // updateUserStats({
-    //   total_documents_processed: newValue,
-    // });
-    // // Sync with backend
-    // await syncStatsWithBackend();
+    const newValue = (state.userStats.total_documents_processed || 0) + 1;
+    updateUserStats({
+      total_documents_processed: newValue,
+    });
+    // Sync with backend
+    await syncStatsWithBackend();
   };
 
   const incrementDocumentShared = async () => {
-    // Temporarily disabled
-    // const newValue = (state.userStats.total_documents_shared || 0) + 1;
-    // updateUserStats({
-    //   total_documents_shared: newValue,
-    // });
-    // // Sync with backend
-    // await syncStatsWithBackend();
+    const newValue = (state.userStats.total_documents_shared || 0) + 1;
+    updateUserStats({
+      total_documents_shared: newValue,
+    });
+    // Sync with backend
+    await syncStatsWithBackend();
   };
 
-  const incrementSensitiveDetected = async () => {
-    // Temporarily disabled
-    // const newValue = (state.userStats.total_sensitive_items_detected || 0) + 1;
-    // updateUserStats({
-    //   total_sensitive_items_detected: newValue,
-    // });
-    // // Sync with backend
-    // await syncStatsWithBackend();
+  const incrementSensitiveDetected = async (count = 1) => {
+    const newValue = (state.userStats.total_sensitive_items_detected || 0) + count;
+    updateUserStats({
+      total_sensitive_items_detected: newValue,
+    });
+    // Sync with backend
+    await syncStatsWithBackend();
   };
 
-  const incrementNonDetected = async () => {
-    // Temporarily disabled
-    // const newValue = (state.userStats.total_non_detected_items || 0) + 1;
-    // updateUserStats({
-    //   total_non_detected_items: newValue,
-    // });
-    // // Sync with backend
-    // await syncStatsWithBackend();
+  const incrementNonDetected = async (count = 1) => {
+    const newValue = (state.userStats.total_non_detected_items || 0) + count;
+    updateUserStats({
+      total_non_detected_items: newValue,
+    });
+    // Sync with backend
+    await syncStatsWithBackend();
   };
 
   // Sync local stats with backend
   const syncStatsWithBackend = async () => {
-    // Temporarily disabled
-    // try {
-    //   // This will be implemented to update backend with current stats
-    //   // For now, we'll reload stats from backend to ensure sync
-    //   await loadUserStats();
-    // } catch (error) {
-    //   console.error('Sync stats error:', error);
-    // }
+    try {
+      // Reload stats from backend to ensure sync
+      await loadUserStats();
+    } catch (error) {
+      console.error('Sync stats error:', error);
+    }
   };
 
   const value = {

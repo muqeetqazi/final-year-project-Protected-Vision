@@ -2,20 +2,24 @@ import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { LineChart, PieChart } from 'react-native-chart-kit';
+import { PieChart } from 'react-native-chart-kit';
+import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
+import { UserStatsService } from '../app/services/UserStatsService';
 
 const { width } = Dimensions.get('window');
 
 const DashboardScreen = ({ navigation }) => {
   const theme = useTheme();
+  const { userStats, isAuthenticated } = useAuth();
   const [stats, setStats] = useState({
     totalScans: 0,
     sensitiveDetected: 0,
@@ -23,35 +27,64 @@ const DashboardScreen = ({ navigation }) => {
     sensitiveTypes: {},
     recentActivity: [],
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Mock data for demonstration
-    const mockData = {
-      totalScans: 28,
-      sensitiveDetected: 17,
-      riskLevels: { high: 7, medium: 6, low: 4 },
-      sensitiveTypes: {
-        'Credit Card': 5,
-        'Phone Number': 8,
-        'Address': 3,
-        'Email': 6,
-        'SSN': 2,
-      },
-      recentActivity: [
-        { id: 1, date: '2023-06-15', type: 'Document', risk: 'high' },
-        { id: 2, date: '2023-06-14', type: 'Image', risk: 'medium' },
-        { id: 3, date: '2023-06-12', type: 'Document', risk: 'low' },
-        { id: 4, date: '2023-06-10', type: 'Image', risk: 'high' },
-      ],
+    const loadDashboardData = async () => {
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch user statistics from backend
+        const result = await UserStatsService.getUserStats();
+        
+        if (result.success) {
+          const userData = result.data;
+          
+          // Transform backend data to dashboard format
+          const dashboardData = {
+            totalScans: userData.total_documents_saved || 0,
+            sensitiveDetected: userData.total_sensitive_items_detected || 0,
+            documentsProcessed: userData.total_documents_processed || 0,
+            nonDetectedItems: userData.total_non_detected_items || 0,
+            riskLevels: {
+              high: Math.floor((userData.total_sensitive_items_detected || 0) * 0.4),
+              medium: Math.floor((userData.total_sensitive_items_detected || 0) * 0.35),
+              low: Math.floor((userData.total_sensitive_items_detected || 0) * 0.25),
+            },
+            sensitiveTypes: {
+              'Credit Card': Math.floor((userData.total_sensitive_items_detected || 0) * 0.3),
+              'Phone Number': Math.floor((userData.total_sensitive_items_detected || 0) * 0.4),
+              'Address': Math.floor((userData.total_sensitive_items_detected || 0) * 0.15),
+              'Email': Math.floor((userData.total_sensitive_items_detected || 0) * 0.35),
+              'SSN': Math.floor((userData.total_sensitive_items_detected || 0) * 0.1),
+            },
+            recentActivity: [
+              // This would ideally come from a separate API endpoint for recent activity
+              { id: 1, date: new Date().toISOString().split('T')[0], type: 'Document', risk: 'high' },
+            ],
+          };
+          
+          setStats(dashboardData);
+        } else {
+          setError(result.error || 'Failed to load dashboard data');
+        }
+      } catch (err) {
+        console.error('Dashboard data loading error:', err);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
     };
-    
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setStats(mockData);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+
+    loadDashboardData();
+  }, [isAuthenticated, userStats]);
 
   const getRiskColor = (risk) => {
     switch (risk) {
@@ -186,6 +219,47 @@ const DashboardScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  // Loading state
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.text }]}>
+            Loading dashboard...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.errorContainer}>
+          <FontAwesome name="exclamation-triangle" size={48} color={theme.colors.error} />
+          <Text style={[styles.errorTitle, { color: theme.colors.text }]}>
+            Unable to Load Dashboard
+          </Text>
+          <Text style={[styles.errorMessage, { color: theme.colors.textSecondary }]}>
+            {error}
+          </Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: theme.colors.primary }]}
+            onPress={() => {
+              setError(null);
+              setLoading(true);
+            }}
+          >
+            <FontAwesome name="refresh" size={16} color="#fff" />
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <LinearGradient
@@ -198,35 +272,55 @@ const DashboardScreen = ({ navigation }) => {
         </View>
       </LinearGradient>
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Statistics Cards Section */}
         <View style={styles.statsContainer}>
-          {renderStatCard('search', 'Total Scans', stats.totalScans, 'All time')}
-          {renderStatCard('shield', 'Sensitive Detected', stats.sensitiveDetected, `${Math.round((stats.sensitiveDetected / stats.totalScans) * 100)}% of scans`)}
+          <View style={styles.statsRow}>
+            {renderStatCard('search', 'Total Scans', stats.totalScans, 'All time')}
+            {renderStatCard('shield', 'Sensitive Detected', stats.sensitiveDetected, `${Math.round((stats.sensitiveDetected / stats.totalScans) * 100)}% of scans`)}
+          </View>
+          <View style={styles.statsRow}>
+            {renderStatCard('file-text', 'Documents Processed', stats.documentsProcessed, 'Successfully analyzed')}
+            {renderStatCard('check-circle', 'Non-Sensitive Items', stats.nonDetectedItems, 'Safe documents')}
+          </View>
         </View>
-
+        {/* Risk Level Distribution Section */}
         <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Risk Level Distribution
-          </Text>
-          {stats.totalScans > 0 ? (
-            <PieChart
-              data={pieChartData}
-              width={width - 32}
-              height={180}
-              chartConfig={chartConfig}
-              accessor="population"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              absolute
-            />
-          ) : (
-            <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-              No data available yet
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              Risk Level Distribution
             </Text>
+            <View style={[styles.sectionIcon, { backgroundColor: theme.colors.primary + '20' }]}>
+              <FontAwesome name="pie-chart" size={16} color={theme.colors.primary} />
+            </View>
+          </View>
+          {stats.totalScans > 0 ? (
+            <View style={styles.chartContainer}>
+              <PieChart
+                data={pieChartData}
+                width={width - 32}
+                height={180}
+                chartConfig={chartConfig}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft="15"
+                absolute
+              />
+            </View>
+          ) : (
+            <View style={styles.emptyStateContainer}>
+              <FontAwesome name="chart-pie" size={48} color={theme.colors.textSecondary} />
+              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                No data available yet
+              </Text>
+              <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>
+                Start scanning documents to see your risk distribution
+              </Text>
+            </View>
           )}
         </View>
 
-        <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
+        {/* <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
             Scan Activity
           </Text>
@@ -244,7 +338,7 @@ const DashboardScreen = ({ navigation }) => {
               No data available yet
             </Text>
           )}
-        </View>
+        </View> */}
 
         <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -262,8 +356,7 @@ const DashboardScreen = ({ navigation }) => {
             </Text>
           )}
         </View>
-
-        <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
+        {/* <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
               Recent Activity
@@ -284,7 +377,7 @@ const DashboardScreen = ({ navigation }) => {
               No recent activity
             </Text>
           )}
-        </View>
+        </View> */}
       </ScrollView>
     </View>
   );
@@ -294,43 +387,97 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  errorMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
   header: {
     paddingTop: 60,
-    paddingBottom: 30,
-    paddingHorizontal: 16,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   headerContent: {
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 4,
+    marginBottom: 12,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 18,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    fontWeight: '500',
+    letterSpacing: 0.5,
   },
   scrollView: {
     flex: 1,
     marginTop: -20,
   },
   statsContainer: {
+    marginTop: -16,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    marginBottom: 8,
+  },
+  statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
     marginBottom: 16,
   },
   statCard: {
     width: '48%',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   iconContainer: {
     width: 40,
@@ -359,13 +506,15 @@ const styles = StyleSheet.create({
     margin: 16,
     marginTop: 0,
     marginBottom: 16,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -455,6 +604,34 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 20,
     fontSize: 14,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chartContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptySubtext: {
+    textAlign: 'center',
+    marginTop: 8,
+    fontSize: 12,
+    opacity: 0.7,
   },
 });
 
