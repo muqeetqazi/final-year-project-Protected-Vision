@@ -465,7 +465,7 @@ const ResultScreen = ({ route, navigation }) => {
             <MaterialCommunityIcons 
               name="shield-alert" 
               size={24} 
-              color={theme.colors.primary} 
+              color={theme.isDarkMode ? "#fff" : theme.colors.primary} 
             />
             <Text style={[styles.recommendationText, { color: theme.colors.text }]}>
               This image contains sensitive information that should not be shared publicly.
@@ -475,7 +475,7 @@ const ResultScreen = ({ route, navigation }) => {
             <MaterialCommunityIcons 
               name="eye-off" 
               size={24} 
-              color={theme.colors.primary} 
+              color={theme.isDarkMode ? "#fff" : theme.colors.primary} 
             />
             <Text style={[styles.recommendationText, { color: theme.colors.text }]}>
               Consider redacting the sensitive information before sharing.

@@ -90,7 +90,7 @@ const SettingsScreen = ({ navigation }) => {
           <IconComponent
             name={icon}
             size={24}
-            color={theme.colors.primary}
+            color={theme.isDarkMode ? "#fff" : theme.colors.primary}
           />
         </View>
         <View style={styles.settingContent}>
@@ -105,9 +105,12 @@ const SettingsScreen = ({ navigation }) => {
           testID={testID}
           value={value}
           onValueChange={onToggle}
-          trackColor={{ false: '#767577', true: theme.colors.primaryLight }}
-          thumbColor={value ? theme.colors.primary : '#f4f3f4'}
-          ios_backgroundColor="#3e3e3e"
+          trackColor={{ 
+            false: theme.isDarkMode ? '#555555' : '#767577', 
+            true: theme.isDarkMode ? theme.colors.primaryLight : theme.colors.primaryLight 
+          }}
+          thumbColor={value ? (theme.isDarkMode ? '#fff' : theme.colors.primary) : (theme.isDarkMode ? '#f4f3f4' : '#f4f3f4')}
+          ios_backgroundColor={theme.isDarkMode ? "#3e3e3e" : "#3e3e3e"}
         />
       </View>
     );
@@ -115,7 +118,7 @@ const SettingsScreen = ({ navigation }) => {
 
   const renderSectionHeader = (title) => (
     <View style={styles.sectionHeader}>
-      <Text style={[styles.sectionHeaderText, { color: theme.colors.primary }]}>
+      <Text style={[styles.sectionHeaderText, { color: theme.isDarkMode ? "#fff" : theme.colors.primary }]}>
         {title}
       </Text>
     </View>
@@ -168,7 +171,7 @@ const SettingsScreen = ({ navigation }) => {
             style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}
             onPress={() => navigation.navigate('HelpSupport')}
           >
-            <Ionicons name="help-circle" size={24} color={theme.colors.primary} />
+            <Ionicons name="help-circle" size={24} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             <Text style={[styles.aboutItemText, { color: theme.colors.text }]}>Help & Support</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
@@ -177,7 +180,7 @@ const SettingsScreen = ({ navigation }) => {
             style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}
             onPress={() => navigation.navigate('PrivacyPolicy')}
           >
-            <Ionicons name="document-text" size={24} color={theme.colors.primary} />
+            <Ionicons name="document-text" size={24} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             <Text style={[styles.aboutItemText, { color: theme.colors.text }]}>Privacy Policy</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
@@ -186,7 +189,7 @@ const SettingsScreen = ({ navigation }) => {
             style={[styles.aboutItem, { backgroundColor: theme.colors.surface }]}
             onPress={() => navigation.navigate('About')}
           >
-            <Ionicons name="information-circle" size={24} color={theme.colors.primary} />
+            <Ionicons name="information-circle" size={24} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             <Text style={[styles.aboutItemText, { color: theme.colors.text }]}>About</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>

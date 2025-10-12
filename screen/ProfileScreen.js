@@ -184,7 +184,7 @@ const ProfileScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('Dashboard')}
           >
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
-              <FontAwesome name="dashboard" size={20} color={theme.colors.primary} />
+              <FontAwesome name="dashboard" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             </View>
             <Text style={[styles.menuText, { color: theme.colors.text }]}>Dashboard</Text>
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
@@ -206,7 +206,7 @@ const ProfileScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('EditProfile')}
           >
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
-              <FontAwesome name="user" size={20} color={theme.colors.primary} />
+              <FontAwesome name="user" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             </View>
             <Text style={[styles.menuText, { color: theme.colors.text }]}>Edit Profile</Text>
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
@@ -214,7 +214,7 @@ const ProfileScreen = ({ navigation }) => {
 
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
-              <FontAwesome name="bell" size={20} color={theme.colors.primary} />
+              <FontAwesome name="bell" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             </View>
             <Text style={[styles.menuText, { color: theme.colors.text }]}>Notifications</Text>
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
@@ -222,7 +222,7 @@ const ProfileScreen = ({ navigation }) => {
 
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
-              <FontAwesome name="lock" size={20} color={theme.colors.primary} />
+              <FontAwesome name="lock" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             </View>
             <Text style={[styles.menuText, { color: theme.colors.text }]}>Privacy & Security</Text>
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
@@ -230,7 +230,7 @@ const ProfileScreen = ({ navigation }) => {
 
           <TouchableOpacity style={styles.menuItem}>
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
-              <FontAwesome name="question-circle" size={20} color={theme.colors.primary} />
+              <FontAwesome name="question-circle" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             </View>
             <Text style={[styles.menuText, { color: theme.colors.text }]}>Help & Support</Text>
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
@@ -239,7 +239,7 @@ const ProfileScreen = ({ navigation }) => {
 
         {/* Logout Button */}
         <TouchableOpacity 
-          style={[styles.logoutButton, { backgroundColor: theme.colors.error }]}
+          style={[styles.logoutButton, { backgroundColor: theme.colors.primary }]}
           onPress={handleLogout}
         >
           <FontAwesome name="sign-out" size={20} color="#fff" />

@@ -1,7 +1,7 @@
 # DigitalOcean API Testing Guide
 
 Your Protected Vision app is now configured to work with your DigitalOcean deployment at:
-**https://protected-vision-soh4o.ondigitalocean.app/**
+**https://protective-vision-k58it.ondigitalocean.app/**
 
 ## 🚀 Quick Test
 

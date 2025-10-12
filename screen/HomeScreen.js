@@ -49,49 +49,43 @@ const HomeScreen = ({ navigation }) => {
   const features = [
     {
       icon: 'id-card',
-      title: 'ID Protection',
-      description: 'Detect national ID cards, driver\'s licenses, and passport information',
+      title: 'Driver License Detection',
+      description: 'Protect driver\'s license data',
     },
     {
       icon: 'credit-card',
-      title: 'Financial Security',
-      description: 'Identify bank account details, credit card numbers, and financial data',
+      title: 'Credit Card Protection',
+      description: 'Secure credit card numbers',
     },
     {
-      icon: 'user-secret',
-      title: 'PII Detection',
-      description: 'Find emails, phone numbers, passwords, and personal identifiers',
+      icon: 'envelope',
+      title: 'Email Address Security',
+      description: 'Find and protect emails',
     },
     {
-      icon: 'file-text',
-      title: 'Document Analysis',
-      description: 'Scan documents for sensitive information with advanced AI',
+      icon: 'medkit',
+      title: 'Medical Records',
+      description: 'Secure medical information',
     },
     {
-      icon: 'shield',
-      title: 'Data Protection',
-      description: 'Get recommendations to secure your sensitive information',
+      icon: 'key',
+      title: 'Password Protection',
+      description: 'Detect login credentials',
     },
     {
-      icon: 'history',
-      title: 'Scan History',
-      description: 'Keep track of previously scanned documents and findings',
+      icon: 'bank',
+      title: 'Bank Information',
+      description: 'Secure bank account data',
     },
   ];
 
   const sensitiveDataTypes = [
-    { name: 'National ID Cards', icon: 'id-card' },
-    { name: 'Driver\'s Licenses', icon: 'car' },
-    { name: 'Passports', icon: 'plane' },
+    { name: 'Driver License', icon: 'id-card' },
     { name: 'Credit Cards', icon: 'credit-card' },
-    { name: 'Bank Statements', icon: 'bank' },
-    { name: 'Tax Documents', icon: 'file-text' },
+    { name: 'Email Address', icon: 'envelope' },
     { name: 'Medical Records', icon: 'medkit' },
-    { name: 'Email Addresses', icon: 'envelope' },
-    { name: 'Phone Numbers', icon: 'phone' },
-    { name: 'Passwords', icon: 'key' },
-    { name: 'Social Security Numbers', icon: 'user-shield' },
-    { name: 'Birth Certificates', icon: 'certificate' },
+    { name: 'Email Password', icon: 'key' },
+    { name: 'Bank Information', icon: 'bank' },
   ];
 
   useEffect(() => {
@@ -390,18 +384,6 @@ const HomeScreen = ({ navigation }) => {
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.historyButton, { 
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.primary 
-            }]}
-            onPress={() => navigation.navigate('History')}
-          >
-            <FontAwesome name="history" size={24} color={theme.colors.primary} />
-            <Text style={[styles.historyButtonText, { color: theme.colors.primary }]}>
-              View Scan History
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -552,20 +534,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
-    marginLeft: 12,
-  },
-  historyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 15,
-    marginTop: 8,
-    borderWidth: 1,
-  },
-  historyButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
     marginLeft: 12,
   },
 });

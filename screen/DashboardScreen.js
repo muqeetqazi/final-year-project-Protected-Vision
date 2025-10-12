@@ -194,7 +194,7 @@ const DashboardScreen = ({ navigation }) => {
     <TouchableOpacity 
       key={item.id} 
       style={[styles.activityItem, { backgroundColor: theme.colors.surface }]}
-      onPress={() => navigation.navigate('History')}
+      onPress={() => {}}
     >
       <View style={[styles.activityIconContainer, { backgroundColor: theme.colors.primaryLight }]}>
         <MaterialCommunityIcons 
@@ -340,28 +340,13 @@ const DashboardScreen = ({ navigation }) => {
           )}
         </View> */}
 
-        <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Sensitive Information Types
-          </Text>
-          {Object.keys(stats.sensitiveTypes).length > 0 ? (
-            <View style={styles.sensitiveTypesContainer}>
-              {Object.entries(stats.sensitiveTypes).map(([type, count]) => 
-                renderSensitiveTypeItem(type, count, stats.sensitiveDetected)
-              )}
-            </View>
-          ) : (
-            <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-              No sensitive information detected yet
-            </Text>
-          )}
-        </View>
+        
         {/* <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
               Recent Activity
             </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('History')}>
+            <TouchableOpacity onPress={() => {}}>
               <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>
                 View All
               </Text>

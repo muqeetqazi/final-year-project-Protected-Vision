@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
+import BeautifulAlert from './components/BeautifulAlert';
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,6 +32,15 @@ const AuthScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+    confirmText: 'OK',
+    showCancel: false,
+    onConfirm: null,
+  });
 
   // Clear errors when switching between login/signup
   useEffect(() => {
@@ -84,6 +94,18 @@ const AuthScreen = ({ navigation }) => {
     return Object.keys(errors).length === 0;
   };
 
+  const showBeautifulAlert = (type, title, message, confirmText = 'OK', showCancel = false, onConfirm = null) => {
+    setAlertConfig({
+      visible: true,
+      type,
+      title,
+      message,
+      confirmText,
+      showCancel,
+      onConfirm,
+    });
+  };
+
   const handleAuth = async () => {
     if (!validateForm()) {
       return;
@@ -91,17 +113,29 @@ const AuthScreen = ({ navigation }) => {
 
     clearError();
 
-      if (isLogin) {
+    if (isLogin) {
       const result = await login(email.trim(), password);
-        if (result.success) {
-          navigation.replace('Home');
-        } else {
-        Alert.alert('Login Failed', result.error || 'Invalid credentials');
-        }
+      if (result.success) {
+        showBeautifulAlert(
+          'success',
+          'Welcome Back! 🎉',
+          'You have successfully logged in to Protected Vision.',
+          'Continue',
+          false,
+          () => navigation.replace('Home')
+        );
       } else {
+        showBeautifulAlert(
+          'error',
+          'Login Failed',
+          result.error || 'Invalid credentials. Please check your email and password.',
+          'Try Again'
+        );
+      }
+    } else {
       const userData = {
         email: email.trim(),
-          password,
+        password,
         password2: confirmPassword,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -109,28 +143,31 @@ const AuthScreen = ({ navigation }) => {
       };
 
       const result = await register(userData);
-        if (result.success) {
-        Alert.alert(
-          'Registration Successful',
-          result.message || 'Account created successfully. Please login.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setIsLogin(true);
-                setEmail('');
-                setPassword('');
-                setConfirmPassword('');
-                setFirstName('');
-                setLastName('');
-                setUsername('');
-              }
-            }
-          ]
+      if (result.success) {
+        showBeautifulAlert(
+          'success',
+          'Account Created! 🎉',
+          'Your account has been created successfully. You can now login with your credentials.',
+          'Login Now',
+          false,
+          () => {
+            setIsLogin(true);
+            setEmail('');
+            setPassword('');
+            setConfirmPassword('');
+            setFirstName('');
+            setLastName('');
+            setUsername('');
+          }
         );
-        } else {
-        Alert.alert('Registration Failed', result.error || 'Failed to create account');
-        }
+      } else {
+        showBeautifulAlert(
+          'error',
+          'Registration Failed',
+          result.error || 'Failed to create account. Please try again.',
+          'Try Again'
+        );
+      }
     }
   };
 
@@ -177,7 +214,7 @@ const AuthScreen = ({ navigation }) => {
               <Text
                 style={[
                   styles.tabText,
-                  isLogin ? { color: theme.colors.primary, fontWeight: 'bold' } : { color: theme.colors.textSecondary }
+                  isLogin ? { color: theme.isDarkMode ? "#fff" : theme.colors.primary, fontWeight: 'bold' } : { color: theme.isDarkMode ? "#fff" : theme.colors.textSecondary }
                 ]}
               >
                 Login
@@ -193,7 +230,7 @@ const AuthScreen = ({ navigation }) => {
               <Text
                 style={[
                   styles.tabText,
-                  !isLogin ? { color: theme.colors.primary, fontWeight: 'bold' } : { color: theme.colors.textSecondary }
+                  !isLogin ? { color: theme.isDarkMode ? "#fff" : theme.colors.primary, fontWeight: 'bold' } : { color: theme.isDarkMode ? "#fff" : theme.colors.textSecondary }
                 ]}
               >
                 Sign Up
@@ -214,7 +251,7 @@ const AuthScreen = ({ navigation }) => {
                       borderWidth: validationErrors.firstName ? 1 : 0
                     }
                   ]}>
-                    <FontAwesome name="user" size={20} color={theme.colors.primary} style={styles.inputIcon} />
+                    <FontAwesome name="user" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} style={styles.inputIcon} />
                     <TextInput
                       style={[styles.input, { color: theme.colors.text }]}
                       placeholder="Enter your first name"
@@ -224,7 +261,7 @@ const AuthScreen = ({ navigation }) => {
                     />
                   </View>
                   {validationErrors.firstName && (
-                <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                <Text style={[styles.errorText, { color: theme.isDarkMode ? "#fff" : theme.colors.error }]}>
                       {validationErrors.firstName}
                 </Text>
                   )}
@@ -240,7 +277,7 @@ const AuthScreen = ({ navigation }) => {
                       borderWidth: validationErrors.lastName ? 1 : 0
                   }
                 ]}>
-                  <FontAwesome name="user" size={20} color={theme.colors.primary} style={styles.inputIcon} />
+                  <FontAwesome name="user" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} style={styles.inputIcon} />
                   <TextInput
                     style={[styles.input, { color: theme.colors.text }]}
                       placeholder="Enter your last name"
@@ -250,7 +287,7 @@ const AuthScreen = ({ navigation }) => {
                     />
                   </View>
                   {validationErrors.lastName && (
-                    <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                    <Text style={[styles.errorText, { color: theme.isDarkMode ? "#fff" : theme.colors.error }]}>
                       {validationErrors.lastName}
                     </Text>
                   )}
@@ -266,7 +303,7 @@ const AuthScreen = ({ navigation }) => {
                       borderWidth: validationErrors.username ? 1 : 0
                     }
                   ]}>
-                    <FontAwesome name="at" size={20} color={theme.colors.primary} style={styles.inputIcon} />
+                    <FontAwesome name="at" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} style={styles.inputIcon} />
                     <TextInput
                       style={[styles.input, { color: theme.colors.text }]}
                       placeholder="Choose a username"
@@ -277,7 +314,7 @@ const AuthScreen = ({ navigation }) => {
                   />
                 </View>
                   {validationErrors.username && (
-                    <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                    <Text style={[styles.errorText, { color: theme.isDarkMode ? "#fff" : theme.colors.error }]}>
                       {validationErrors.username}
                   </Text>
                 )}
@@ -295,7 +332,7 @@ const AuthScreen = ({ navigation }) => {
                   borderWidth: validationErrors.email ? 1 : 0
                 }
               ]}>
-                <FontAwesome name="envelope" size={20} color={theme.colors.primary} style={styles.inputIcon} />
+                <FontAwesome name="envelope" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: theme.colors.text }]}
                   placeholder="Enter your email"
@@ -307,7 +344,7 @@ const AuthScreen = ({ navigation }) => {
                 />
               </View>
               {validationErrors.email && (
-                <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                <Text style={[styles.errorText, { color: theme.isDarkMode ? "#fff" : theme.colors.error }]}>
                   {validationErrors.email}
                 </Text>
               )}
@@ -323,7 +360,7 @@ const AuthScreen = ({ navigation }) => {
                   borderWidth: validationErrors.password ? 1 : 0
                 }
               ]}>
-                <FontAwesome name="lock" size={20} color={theme.colors.primary} style={styles.inputIcon} />
+                <FontAwesome name="lock" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { color: theme.colors.text }]}
                   placeholder="Enter your password"
@@ -336,12 +373,12 @@ const AuthScreen = ({ navigation }) => {
                   <FontAwesome
                     name={showPassword ? 'eye-slash' : 'eye'}
                     size={20}
-                    color={theme.colors.textSecondary}
+                    color={theme.isDarkMode ? "#fff" : theme.colors.textSecondary}
                   />
                 </TouchableOpacity>
               </View>
               {validationErrors.password && (
-                <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                <Text style={[styles.errorText, { color: theme.isDarkMode ? "#fff" : theme.colors.error }]}>
                   {validationErrors.password}
                 </Text>
               )}
@@ -358,7 +395,7 @@ const AuthScreen = ({ navigation }) => {
                     borderWidth: validationErrors.confirmPassword ? 1 : 0
                   }
                 ]}>
-                  <FontAwesome name="lock" size={20} color={theme.colors.primary} style={styles.inputIcon} />
+                  <FontAwesome name="lock" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} style={styles.inputIcon} />
                   <TextInput
                     style={[styles.input, { color: theme.colors.text }]}
                     placeholder="Confirm your password"
@@ -371,12 +408,12 @@ const AuthScreen = ({ navigation }) => {
                     <FontAwesome
                       name={showConfirmPassword ? 'eye-slash' : 'eye'}
                       size={20}
-                      color={theme.colors.textSecondary}
+                      color={theme.isDarkMode ? "#fff" : theme.colors.textSecondary}
                     />
                   </TouchableOpacity>
                 </View>
                 {validationErrors.confirmPassword && (
-                  <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                  <Text style={[styles.errorText, { color: theme.isDarkMode ? "#fff" : theme.colors.error }]}>
                     {validationErrors.confirmPassword}
                   </Text>
                 )}
@@ -385,7 +422,7 @@ const AuthScreen = ({ navigation }) => {
 
           {isLogin && (
               <TouchableOpacity style={styles.forgotPasswordContainer}>
-                <Text style={[styles.forgotPasswordText, { color: theme.colors.primary }]}>
+                <Text style={[styles.forgotPasswordText, { color: theme.isDarkMode ? "#fff" : theme.colors.primary }]}>
                   Forgot Password?
                 </Text>
             </TouchableOpacity>
@@ -409,8 +446,8 @@ const AuthScreen = ({ navigation }) => {
 
             {error && (
               <View style={[styles.errorContainer, { backgroundColor: theme.colors.error + '20' }]}>
-                <FontAwesome name="exclamation-triangle" size={16} color={theme.colors.error} />
-                <Text style={[styles.errorMessage, { color: theme.colors.error }]}>
+                <FontAwesome name="exclamation-triangle" size={16} color={theme.isDarkMode ? "#fff" : theme.colors.error} />
+                <Text style={[styles.errorMessage, { color: theme.isDarkMode ? "#fff" : theme.colors.error }]}>
                   {error}
                   </Text>
                 </View>
@@ -423,23 +460,15 @@ const AuthScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.socialButtonsContainer}>
-              <TouchableOpacity
-                style={[styles.socialButton, { backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5' }]}
-              >
+            <TouchableOpacity
+              style={[styles.socialButton, { backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5' }]}
+            >
               <FontAwesome name="google" size={20} color="#DB4437" />
-                <Text style={[styles.socialButtonText, { color: theme.colors.text }]}>
-                  Google
-                </Text>
+              <Text style={[styles.socialButtonText, { color: theme.colors.text }]}>
+                Google
+              </Text>
             </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.socialButton, { backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5' }]}
-              >
-              <FontAwesome name="facebook" size={20} color="#4267B2" />
-                <Text style={[styles.socialButtonText, { color: theme.colors.text }]}>
-                  Facebook
-                </Text>
-            </TouchableOpacity>
-            </View>
+          </View>
           </View>
         </View>
 
@@ -447,7 +476,7 @@ const AuthScreen = ({ navigation }) => {
           <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <Text
-              style={[styles.footerLink, { color: theme.colors.primary }]}
+              style={[styles.footerLink, { color: theme.isDarkMode ? "#fff" : theme.colors.primary }]}
               onPress={toggleAuthMode}
             >
               {isLogin ? 'Sign Up' : 'Login'}
@@ -455,6 +484,18 @@ const AuthScreen = ({ navigation }) => {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Beautiful Alert Modal */}
+      <BeautifulAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        confirmText={alertConfig.confirmText}
+        showCancel={alertConfig.showCancel}
+        onConfirm={alertConfig.onConfirm}
+        onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -583,14 +624,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   socialButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   socialButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '48%',
+    width: '100%',
     height: 50,
     borderRadius: 10,
   },

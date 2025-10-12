@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Your DigitalOcean deployment URL
-  BASE_URL: 'https://protected-vision-soh4o.ondigitalocean.app/api',
+  BASE_URL: 'https://protective-vision-k58it.ondigitalocean.app/api',
   
   // Alternative URLs for different environments
   // BASE_URL: 'http://localhost:8000/api', // For local development
