@@ -15,20 +15,20 @@ const PreviewScreen = ({ route, navigation }) => {
    const [uploading, setUploading] = useState(false);
    const [uploadStatus, setUploadStatus] = useState('');
    const [selectedModel, setSelectedModel] = useState('auto');
-   const [selectedTrack, setSelectedTrack] = useState('fast');
+   const [selectedSpeedMode, setSelectedSpeedMode] = useState('fast');
    const [showModelSelection, setShowModelSelection] = useState(false);
    const theme = useTheme();
 
    const models = [
-     { id: 'auto', name: 'Auto', description: 'Automatically detect the best model', icon: 'magic' },
-     { id: 'plate', name: 'Plate', description: 'Optimized for license plates', icon: 'car' },
-     { id: 'card', name: 'Card', description: 'Optimized for ID cards and documents', icon: 'id-card' },
-     { id: 'text', name: 'Text', description: 'Optimized for text recognition', icon: 'file-text' },
+     { id: 'auto', name: 'ALL-Standard', description: 'Detects all types with high accuracy', icon: 'magic' },
+     { id: 'card', name: 'Card-Standard', description: 'Optimized for ID cards and documents', icon: 'id-card' },
+     { id: 'plate', name: 'Plate-Standard', description: 'Optimized for license plates', icon: 'car' },
+     { id: 'text', name: 'Text-Standard', description: 'Optimized for sensitive text detection', icon: 'file-text' },
    ];
 
-   const tracks = [
-     { id: 'fast', name: 'Fast', description: 'Quick processing with good accuracy', icon: 'bolt' },
-     { id: 'slow', name: 'Slow', description: 'Thorough processing with high accuracy', icon: 'clock-o' },
+   const speedModes = [
+     { id: 'fast', name: 'Fast Mode', description: 'Quick processing with good accuracy', icon: 'bolt' },
+     { id: 'slow', name: 'Standard Mode', description: 'Thorough processing with high accuracy', icon: 'clock-o' },
    ];
 
    const analyzeDocument = async () => {
@@ -48,12 +48,13 @@ const PreviewScreen = ({ route, navigation }) => {
             fileName = 'video.mp4';
          }
 
-         // Process document with selected model
+         // Process document with selected model and speed mode
          const resultPayload = await detectBlur(
             media.uri,
             fileType,
             fileName,
             selectedModel,
+            selectedSpeedMode,
             undefined // API_KEY
          );
 
@@ -93,8 +94,8 @@ const PreviewScreen = ({ route, navigation }) => {
       return models.find(model => model.id === selectedModel) || models[0];
    };
 
-   const getSelectedTrackInfo = () => {
-      return tracks.find(track => track.id === selectedTrack) || tracks[0];
+   const getSelectedSpeedModeInfo = () => {
+      return speedModes.find(speedMode => speedMode.id === selectedSpeedMode) || speedModes[0];
    };
 
    if (!media?.uri) {
@@ -155,7 +156,7 @@ const PreviewScreen = ({ route, navigation }) => {
                >
                   <View style={styles.selectionContent}>
                      <View style={[styles.selectionIcon, { backgroundColor: theme.colors.primary }]}>
-                        <FontAwesome name={getSelectedModelInfo().icon} size={20} color="#fff" />
+                        <FontAwesome name={getSelectedModelInfo().icon} size={16} color="#fff" />
                      </View>
                      <View style={styles.selectionText}>
                         <Text style={[styles.selectionName, { color: theme.colors.text }]}>
@@ -174,36 +175,36 @@ const PreviewScreen = ({ route, navigation }) => {
             <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Processing Speed</Text>
                <View style={styles.trackContainer}>
-                  {tracks.map((track) => (
+                  {speedModes.map((speedMode) => (
                      <TouchableOpacity
-                        key={track.id}
+                        key={speedMode.id}
                         style={[
                            styles.trackCard,
                            { 
-                              backgroundColor: selectedTrack === track.id ? theme.colors.primary : theme.colors.background,
-                              borderColor: selectedTrack === track.id ? theme.colors.primary : theme.colors.border
+                              backgroundColor: selectedSpeedMode === speedMode.id ? theme.colors.primary : theme.colors.background,
+                              borderColor: selectedSpeedMode === speedMode.id ? theme.colors.primary : theme.colors.border
                            }
                         ]}
-                        onPress={() => setSelectedTrack(track.id)}
+                        onPress={() => setSelectedSpeedMode(speedMode.id)}
                      >
                         <View style={styles.trackContent}>
                            <FontAwesome 
-                              name={track.icon} 
-                              size={18} 
-                              color={selectedTrack === track.id ? '#fff' : theme.colors.primary} 
+                              name={speedMode.icon} 
+                              size={14} 
+                              color={selectedSpeedMode === speedMode.id ? '#fff' : theme.colors.primary} 
                            />
                            <Text style={[
                               styles.trackName,
-                              { color: selectedTrack === track.id ? '#fff' : theme.colors.text }
+                              { color: selectedSpeedMode === speedMode.id ? '#fff' : theme.colors.text }
                            ]}>
-                              {track.name}
+                              {speedMode.name}
                            </Text>
                         </View>
                         <Text style={[
                            styles.trackDescription,
-                           { color: selectedTrack === track.id ? 'rgba(255,255,255,0.8)' : theme.colors.textSecondary }
+                           { color: selectedSpeedMode === speedMode.id ? 'rgba(255,255,255,0.8)' : theme.colors.textSecondary }
                         ]}>
-                           {track.description}
+                           {speedMode.description}
                         </Text>
                      </TouchableOpacity>
                   ))}
@@ -248,14 +249,19 @@ const PreviewScreen = ({ route, navigation }) => {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                     style={[styles.button, styles.retakeButton, { 
+                     style={[styles.button, { 
                         backgroundColor: theme.colors.surface,
                         borderColor: theme.colors.primary 
                      }]}
                      onPress={() => navigation.goBack()}
                   >
-                     <FontAwesome name="refresh" size={24} color={theme.colors.primary} />
-                     <Text style={[styles.buttonText, { color: theme.colors.primary }]}>Scan Different Document</Text>
+                     <LinearGradient
+                        colors={[theme.colors.surface, theme.colors.surface]}
+                        style={styles.buttonGradient}
+                     >
+                        <FontAwesome name="refresh" size={24} color={theme.colors.primary} />
+                        <Text style={[styles.buttonText, { color: theme.colors.primary }]}>Scan Different Document</Text>
+                     </LinearGradient>
                   </TouchableOpacity>
                </>
             )}
@@ -317,7 +323,7 @@ const PreviewScreen = ({ route, navigation }) => {
                               ]}>
                                  <FontAwesome 
                                     name={model.icon} 
-                                    size={24} 
+                                    size={18} 
                                     color={selectedModel === model.id ? '#fff' : '#fff'} 
                                  />
                               </View>
@@ -358,8 +364,8 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 20,
-      paddingTop: 50,
-      paddingBottom: 20,
+      paddingTop: 30,
+      paddingBottom: 8,
       borderBottomWidth: 1,
    },
    headerTitle: {
@@ -367,7 +373,7 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
    },
    backButton: {
-      padding: 8,
+      padding: 6,
    },
    scrollView: {
       flex: 1,
@@ -380,13 +386,13 @@ const styles = StyleSheet.create({
    },
    mediaPreview: {
       width: width,
-      height: height * 0.35,
+      height: height * 0.3,
    },
    sectionContainer: {
-      marginHorizontal: 20,
-      marginBottom: 20,
-      borderRadius: 16,
-      padding: 20,
+      marginHorizontal: 12,
+      marginBottom: 12,
+      borderRadius: 12,
+      padding: 12,
       shadowOffset: {
          width: 0,
          height: 2,
@@ -396,85 +402,85 @@ const styles = StyleSheet.create({
       elevation: 3,
    },
    sectionTitle: {
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: 'bold',
-      marginBottom: 16,
+      marginBottom: 10,
    },
    selectionCard: {
-      borderRadius: 12,
+      borderRadius: 10,
       borderWidth: 1,
-      padding: 16,
+      padding: 12,
    },
    selectionContent: {
       flexDirection: 'row',
       alignItems: 'center',
    },
    selectionIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 12,
+      marginRight: 10,
    },
    selectionText: {
       flex: 1,
    },
    selectionName: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: '600',
-      marginBottom: 4,
+      marginBottom: 2,
    },
    selectionDescription: {
-      fontSize: 14,
+      fontSize: 12,
    },
    trackContainer: {
       flexDirection: 'row',
-      gap: 12,
+      gap: 8,
    },
    trackCard: {
       flex: 1,
-      borderRadius: 12,
+      borderRadius: 10,
       borderWidth: 1,
-      padding: 16,
+      padding: 10,
       alignItems: 'center',
    },
    trackContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 8,
+      marginBottom: 6,
    },
    trackName: {
-      fontSize: 16,
+      fontSize: 13,
       fontWeight: '600',
-      marginLeft: 8,
+      marginLeft: 6,
    },
    trackDescription: {
-      fontSize: 12,
+      fontSize: 10,
       textAlign: 'center',
-      lineHeight: 16,
+      lineHeight: 14,
    },
    infoBanner: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 16,
-      marginHorizontal: 20,
-      marginBottom: 20,
-      borderRadius: 12,
+      padding: 12,
+      marginHorizontal: 12,
+      marginBottom: 12,
+      borderRadius: 10,
    },
    infoIcon: {
-      marginRight: 12,
+      marginRight: 8,
    },
    infoText: {
       color: '#fff',
-      fontSize: 14,
+      fontSize: 12,
       flex: 1,
-      lineHeight: 20,
+      lineHeight: 16,
    },
    actionContainer: {
-      padding: 20,
-      borderTopLeftRadius: 30,
-      borderTopRightRadius: 30,
+      padding: 16,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
       shadowOffset: {
          width: 0,
          height: -3,
@@ -484,16 +490,16 @@ const styles = StyleSheet.create({
       elevation: 6,
    },
    button: {
-      borderRadius: 12,
-      marginVertical: 8,
+      borderRadius: 10,
+      marginVertical: 6,
       overflow: 'hidden',
    },
    buttonGradient: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 15,
-      paddingHorizontal: 30,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
    },
    submitButton: {
       backgroundColor: '#43034d',
@@ -502,39 +508,39 @@ const styles = StyleSheet.create({
       backgroundColor: '#fff',
       borderWidth: 1,
       borderColor: '#43034d',
-      paddingVertical: 15,
-      paddingHorizontal: 30,
+      paddingVertical: 12,
+      paddingHorizontal: 24,
    },
    buttonText: {
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: '600',
       color: '#fff',
-      marginLeft: 12,
+      marginLeft: 8,
    },
    loadingContainer: {
       alignItems: 'center',
-      padding: 20,
+      padding: 16,
    },
    loadingText: {
-      marginTop: 12,
-      fontSize: 16,
+      marginTop: 8,
+      fontSize: 14,
       fontWeight: '500',
       textAlign: 'center',
    },
    statusContainer: {
-      marginTop: 20,
-      padding: 15,
-      borderRadius: 12,
+      marginTop: 16,
+      padding: 12,
+      borderRadius: 10,
    },
    statusText: {
-      fontSize: 16,
+      fontSize: 14,
       textAlign: 'center',
       fontWeight: '500',
    },
    errorText: {
-      fontSize: 16,
+      fontSize: 14,
       textAlign: 'center',
-      marginTop: 20,
+      marginTop: 16,
    },
    // Modal styles
    modalOverlay: {
@@ -543,57 +549,57 @@ const styles = StyleSheet.create({
       justifyContent: 'flex-end',
    },
    modalContainer: {
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      maxHeight: height * 0.7,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      maxHeight: height * 0.5,
    },
    modalHeader: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: 20,
+      padding: 16,
       borderBottomWidth: 1,
       borderBottomColor: '#e0e0e0',
    },
    modalTitle: {
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: 'bold',
    },
    modalCloseButton: {
-      padding: 8,
+      padding: 6,
    },
    modalContent: {
-      padding: 20,
+      padding: 16,
    },
    modelCard: {
-      borderRadius: 12,
+      borderRadius: 10,
       borderWidth: 1,
-      marginBottom: 12,
-      padding: 16,
+      marginBottom: 8,
+      padding: 12,
    },
    modelContent: {
       flexDirection: 'row',
       alignItems: 'center',
    },
    modelIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 16,
+      marginRight: 12,
    },
    modelText: {
       flex: 1,
    },
    modelName: {
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: '600',
-      marginBottom: 4,
+      marginBottom: 2,
    },
    modelDescription: {
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 12,
+      lineHeight: 16,
    },
 });
 

@@ -367,20 +367,41 @@ const ResultScreen = ({ route, navigation }) => {
               <Video
                 source={{ uri: media.uri }}
                 style={styles.mediaPreview}
-                useNativeControls
+                useNativeControls={true}
                 resizeMode="contain"
                 shouldPlay={false}
-                isLooping
+                isLooping={false}
+                onError={(error) => {
+                  console.error('Video playback error:', error);
+                  console.log('Video URI:', media.uri);
+                }}
+                onLoad={(status) => {
+                  console.log('Video loaded successfully:', status);
+                }}
+                onLoadStart={() => {
+                  console.log('Video loading started');
+                }}
+                onReadyForDisplay={() => {
+                  console.log('Video ready for display');
+                }}
               />
             ) : (
               <Image
                 source={{ uri: media.uri }}
                 style={styles.mediaPreview}
-                resizeMode="cover"
+                resizeMode="contain"
+                onError={(error) => {
+                  console.error('Image load error:', error);
+                }}
+                onLoad={() => {
+                  console.log('Image loaded successfully');
+                }}
               />
             )
           ) : (
-            <Text style={{ color: 'red', textAlign: 'center' }}>No media to display</Text>
+            <View style={styles.noMediaContainer}>
+              <Text style={[styles.noMediaText, { color: theme.colors.error }]}>No media to display</Text>
+            </View>
           )}
           <View 
             style={[
@@ -515,12 +536,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 50,
-    paddingBottom: 15,
+    paddingTop: 30,
+    paddingBottom: 8,
     paddingHorizontal: 16,
   },
   backButton: {
-    padding: 8,
+    padding: 6,
   },
   headerTitle: {
     fontSize: 18,
@@ -528,7 +549,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   shareButton: {
-    padding: 8,
+    padding: 6,
   },
   scrollView: {
     flex: 1,
@@ -541,6 +562,16 @@ const styles = StyleSheet.create({
   mediaPreview: {
     width: '100%',
     height: '100%',
+  },
+  noMediaContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+  },
+  noMediaText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
   riskBadge: {
     position: 'absolute',

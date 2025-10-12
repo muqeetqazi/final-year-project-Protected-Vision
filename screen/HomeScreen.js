@@ -115,26 +115,23 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const handleMediaPicker = async (type) => {
-    try {
-      const baseOptions = {
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      };
-
-      let result;
-      if (type === 'camera') {
-        result = await ImagePicker.launchCameraAsync({
-          ...baseOptions,
-          mediaTypes: ImagePicker.MediaTypeOptions.All
-        });
-      } else {
-        result = await ImagePicker.launchImageLibraryAsync({
-          ...baseOptions,
-          mediaTypes: ImagePicker.MediaTypeOptions.All
-        });
-      }
+   const handleMediaPicker = async (type) => {
+     try {
+       let result;
+       if (type === 'camera') {
+         result = await ImagePicker.launchCameraAsync({
+           allowsEditing: true,
+           aspect: [4, 3],
+           quality: 1,
+           mediaTypes: ImagePicker.MediaTypeOptions.All
+         });
+       } else {
+         result = await ImagePicker.launchImageLibraryAsync({
+           allowsEditing: false,
+           quality: 1,
+           mediaTypes: ImagePicker.MediaTypeOptions.All
+         });
+       }
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedAsset = result.assets[0];
@@ -424,7 +421,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    paddingTop: Platform.OS === 'ios' ? 30 : 20,
   },
   title: {
     fontSize: 24,
