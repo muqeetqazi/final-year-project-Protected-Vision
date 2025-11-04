@@ -23,7 +23,7 @@ const DashboardScreen = ({ navigation }) => {
   const [stats, setStats] = useState({
     totalScans: 0,
     sensitiveDetected: 0,
-    riskLevels: { high: 0, medium: 0, low: 0 },
+    riskLevels: { high: 0, low: 0 },
     sensitiveTypes: {},
     recentActivity: [],
   });
@@ -54,9 +54,8 @@ const DashboardScreen = ({ navigation }) => {
             documentsProcessed: userData.total_documents_processed || 0,
             nonDetectedItems: userData.total_non_detected_items || 0,
             riskLevels: {
-              high: Math.floor((userData.total_sensitive_items_detected || 0) * 0.4),
-              medium: Math.floor((userData.total_sensitive_items_detected || 0) * 0.35),
-              low: Math.floor((userData.total_sensitive_items_detected || 0) * 0.25),
+              high: Math.floor((userData.total_sensitive_items_detected || 0) * 0.6),
+              low: Math.floor((userData.total_sensitive_items_detected || 0) * 0.4),
             },
             sensitiveTypes: {
               'Credit Card': Math.floor((userData.total_sensitive_items_detected || 0) * 0.3),
@@ -90,8 +89,6 @@ const DashboardScreen = ({ navigation }) => {
     switch (risk) {
       case 'high':
         return '#FF4D4F';
-      case 'medium':
-        return '#FAAD14';
       case 'low':
         return '#52C41A';
       default:
@@ -99,17 +96,16 @@ const DashboardScreen = ({ navigation }) => {
     }
   };
 
+  // Calculate total and percentages for risk levels
+  const totalRisk = stats.riskLevels.high + stats.riskLevels.low;
+  const highPercentage = totalRisk > 0 ? Math.round((stats.riskLevels.high / totalRisk) * 100) : 0;
+  const lowPercentage = totalRisk > 0 ? Math.round((stats.riskLevels.low / totalRisk) * 100) : 0;
+
   const pieChartData = [
     {
       name: 'High',
       population: stats.riskLevels.high,
       color: '#FF4D4F',
-      legendFontColor: theme.colors.text,
-    },
-    {
-      name: 'Medium',
-      population: stats.riskLevels.medium,
-      color: '#FAAD14',
       legendFontColor: theme.colors.text,
     },
     {
@@ -150,7 +146,7 @@ const DashboardScreen = ({ navigation }) => {
   const renderStatCard = (icon, title, value, subtitle) => (
     <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
       <View style={[styles.iconContainer, { backgroundColor: theme.colors.primaryLight }]}>
-        <FontAwesome name={icon} size={20} color={theme.colors.primary} />
+        <FontAwesome name={icon} size={20} color={theme.isDarkMode ? '#fff' : '#000'} />
       </View>
       <View style={styles.statContent}>
         <Text style={[styles.statValue, { color: theme.colors.text }]}>{value}</Text>
@@ -277,7 +273,7 @@ const DashboardScreen = ({ navigation }) => {
         <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
             {renderStatCard('search', 'Total Scans', stats.totalScans, 'All time')}
-            {renderStatCard('shield', 'Sensitive Detected', stats.sensitiveDetected, `${Math.round((stats.sensitiveDetected / stats.totalScans) * 100)}% of scans`)}
+            {renderStatCard('shield', 'Sensitive Detected', stats.sensitiveDetected)}
           </View>
           <View style={styles.statsRow}>
             {renderStatCard('file-text', 'Documents Processed', stats.documentsProcessed, 'Successfully analyzed')}
@@ -287,30 +283,50 @@ const DashboardScreen = ({ navigation }) => {
         {/* Risk Level Distribution Section */}
         <View style={[styles.sectionContainer, { backgroundColor: theme.colors.surface }]}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Risk Level Distribution
-            </Text>
-            <View style={[styles.sectionIcon, { backgroundColor: theme.colors.primary + '20' }]}>
-              <FontAwesome name="pie-chart" size={16} color={theme.colors.primary} />
+            <View style={styles.sectionTitleContainer}>
+              <View style={[styles.sectionIcon, { backgroundColor: theme.colors.primary + '20' }]}>
+                <FontAwesome name="pie-chart" size={18} color={theme.isDarkMode ? '#fff' : '#000'} />
+              </View>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                Risk Level Distribution
+              </Text>
             </View>
           </View>
           {stats.totalScans > 0 ? (
             <View style={styles.chartContainer}>
-              <PieChart
-                data={pieChartData}
-                width={width - 32}
-                height={180}
-                chartConfig={chartConfig}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-                absolute
-              />
+              <View style={styles.chartWrapper}>
+                <PieChart
+                  data={pieChartData}
+                  width={width - 32}
+                  height={200}
+                  chartConfig={chartConfig}
+                  accessor="population"
+                  backgroundColor="transparent"
+                  paddingLeft={(width - 32) / 2 - 100}
+                  absolute={false}
+                  hasLegend={false}
+                />
+              </View>
+              {/* Custom Percentage Display */}
+              <View style={[styles.percentageContainer, { backgroundColor: theme.colors.background }]}>
+                <View style={styles.percentageItem}>
+                  <View style={[styles.percentageIndicator, { backgroundColor: '#FF4D4F' }]} />
+                  <Text style={[styles.percentageLabel, { color: theme.colors.text }]}>High Risk</Text>
+                  <Text style={[styles.percentageValue, { color: '#FF4D4F' }]}>{highPercentage}%</Text>
+                </View>
+                <View style={styles.percentageItem}>
+                  <View style={[styles.percentageIndicator, { backgroundColor: '#52C41A' }]} />
+                  <Text style={[styles.percentageLabel, { color: theme.colors.text }]}>Low Risk</Text>
+                  <Text style={[styles.percentageValue, { color: '#52C41A' }]}>{lowPercentage}%</Text>
+                </View>
+              </View>
             </View>
           ) : (
             <View style={styles.emptyStateContainer}>
-              <FontAwesome name="chart-pie" size={48} color={theme.colors.textSecondary} />
-              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+              <View style={[styles.emptyIconContainer, { backgroundColor: theme.colors.primary + '10' }]}>
+                <FontAwesome name="chart-pie" size={48} color={theme.isDarkMode ? '#fff' : '#000'} />
+              </View>
+              <Text style={[styles.emptyText, { color: theme.colors.text }]}>
                 No data available yet
               </Text>
               <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>
@@ -414,18 +430,18 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   header: {
-    paddingTop: 30,
-    paddingBottom: 20,
+    paddingTop: 70,
+    paddingBottom: 30,
     paddingHorizontal: 20,
   },
   headerContent: {
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 12,
+    marginTop: 4,
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
@@ -507,10 +523,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginLeft: 10,
   },
   viewAllText: {
     fontSize: 14,
@@ -597,20 +617,62 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
   chartContainer: {
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 20,
+    paddingTop: 10,
+  },
+  chartWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  percentageContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  percentageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  percentageIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  percentageLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginRight: 8,
+  },
+  percentageValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   emptyStateContainer: {
     alignItems: 'center',
     paddingVertical: 40,
     paddingHorizontal: 20,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   emptySubtext: {
     textAlign: 'center',

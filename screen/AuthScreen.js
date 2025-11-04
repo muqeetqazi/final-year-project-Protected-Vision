@@ -23,13 +23,20 @@ const AuthScreen = ({ navigation }) => {
   const theme = useTheme();
   const { login, register, isLoading, error, clearError, isAuthenticated } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  
+  // Login form state
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  
+  // Signup form state
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [alertConfig, setAlertConfig] = useState({
@@ -58,22 +65,31 @@ const AuthScreen = ({ navigation }) => {
   const validateForm = () => {
     const errors = {};
     
-    // Email validation
-    if (!email.trim()) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      errors.email = 'Please enter a valid email address';
-    }
-    
-    // Password validation
-    if (!password.trim()) {
-      errors.password = 'Password is required';
-    } else if (password.length < 8) {
-      errors.password = 'Password must be at least 8 characters long';
-    }
-
-    // Sign up specific validations
-    if (!isLogin) {
+    if (isLogin) {
+      // Login validation
+      if (!loginEmail.trim()) {
+        errors.email = 'Email is required';
+      } else if (!/\S+@\S+\.\S+/.test(loginEmail)) {
+        errors.email = 'Please enter a valid email address';
+      }
+      
+      if (!loginPassword.trim()) {
+        errors.password = 'Password is required';
+      }
+    } else {
+      // Signup validation
+      if (!signupEmail.trim()) {
+        errors.email = 'Email is required';
+      } else if (!/\S+@\S+\.\S+/.test(signupEmail)) {
+        errors.email = 'Please enter a valid email address';
+      }
+      
+      if (!signupPassword.trim()) {
+        errors.password = 'Password is required';
+      } else if (signupPassword.length < 8) {
+        errors.password = 'Password must be at least 8 characters long';
+      }
+      
       if (!firstName.trim()) {
         errors.firstName = 'First name is required';
       }
@@ -85,7 +101,7 @@ const AuthScreen = ({ navigation }) => {
       }
       if (!confirmPassword.trim()) {
         errors.confirmPassword = 'Please confirm your password';
-      } else if (password !== confirmPassword) {
+      } else if (signupPassword !== confirmPassword) {
         errors.confirmPassword = 'Passwords do not match';
       }
     }
@@ -114,7 +130,7 @@ const AuthScreen = ({ navigation }) => {
     clearError();
 
     if (isLogin) {
-      const result = await login(email.trim(), password);
+      const result = await login(loginEmail.trim(), loginPassword);
       if (result.success) {
         showBeautifulAlert(
           'success',
@@ -134,8 +150,8 @@ const AuthScreen = ({ navigation }) => {
       }
     } else {
       const userData = {
-        email: email.trim(),
-        password,
+        email: signupEmail.trim(),
+        password: signupPassword,
         password2: confirmPassword,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -152,8 +168,8 @@ const AuthScreen = ({ navigation }) => {
           false,
           () => {
             setIsLogin(true);
-            setEmail('');
-            setPassword('');
+            setSignupEmail('');
+            setSignupPassword('');
             setConfirmPassword('');
             setFirstName('');
             setLastName('');
@@ -339,8 +355,8 @@ const AuthScreen = ({ navigation }) => {
                   placeholderTextColor={theme.colors.textSecondary}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  value={email}
-                  onChangeText={setEmail}
+                  value={isLogin ? loginEmail : signupEmail}
+                  onChangeText={isLogin ? setLoginEmail : setSignupEmail}
                 />
               </View>
               {validationErrors.email && (
@@ -365,13 +381,13 @@ const AuthScreen = ({ navigation }) => {
                   style={[styles.input, { color: theme.colors.text }]}
                   placeholder="Enter your password"
                   placeholderTextColor={theme.colors.textSecondary}
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
+                  secureTextEntry={isLogin ? !showLoginPassword : !showSignupPassword}
+                  value={isLogin ? loginPassword : signupPassword}
+                  onChangeText={isLogin ? setLoginPassword : setSignupPassword}
                 />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <TouchableOpacity onPress={() => isLogin ? setShowLoginPassword(!showLoginPassword) : setShowSignupPassword(!showSignupPassword)}>
                   <FontAwesome
-                    name={showPassword ? 'eye-slash' : 'eye'}
+                    name={(isLogin ? showLoginPassword : showSignupPassword) ? 'eye-slash' : 'eye'}
                     size={20}
                     color={theme.isDarkMode ? "#fff" : theme.colors.textSecondary}
                   />
@@ -452,23 +468,6 @@ const AuthScreen = ({ navigation }) => {
                   </Text>
                 </View>
               )}
-
-            <View style={styles.orContainer}>
-              <View style={[styles.orLine, { backgroundColor: theme.colors.border }]} />
-              <Text style={[styles.orText, { color: theme.colors.textSecondary }]}>OR</Text>
-              <View style={[styles.orLine, { backgroundColor: theme.colors.border }]} />
-          </View>
-
-          <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity
-              style={[styles.socialButton, { backgroundColor: theme.isDarkMode ? '#2a2a2a' : '#f5f5f5' }]}
-            >
-              <FontAwesome name="google" size={20} color="#DB4437" />
-              <Text style={[styles.socialButtonText, { color: theme.colors.text }]}>
-                Google
-              </Text>
-            </TouchableOpacity>
-          </View>
           </View>
         </View>
 
@@ -514,6 +513,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
   },
   logoContainer: {
+    paddingTop: 80,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -609,36 +609,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  orContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  orLine: {
-    flex: 1,
-    height: 1,
-  },
-  orText: {
-    marginHorizontal: 10,
-    fontSize: 14,
-  },
-  socialButtonsContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    height: 50,
-    borderRadius: 10,
-  },
-  socialButtonText: {
-    marginLeft: 10,
-    fontSize: 14,
-    fontWeight: '500',
   },
   footerContainer: {
     marginTop: 30,

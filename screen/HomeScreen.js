@@ -402,8 +402,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 30 : 20,
+    paddingHorizontal: 30,
+    paddingBottom: 30,
+    paddingTop: Platform.OS === 'ios' ? 100 : 70,
   },
   title: {
     fontSize: 24,

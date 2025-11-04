@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width: viewportWidth } = Dimensions.get('window');
@@ -6,16 +6,85 @@ const { width: viewportWidth } = Dimensions.get('window');
 const CarouselComponent = ({ data }) => {
   const scrollViewRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  //const selectLanguage = useSelector((state) => state.language);
-    const handleScroll = (event) => {
+  const autoScrollIntervalRef = useRef(null);
+  const isUserScrollingRef = useRef(false);
+
+  const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / viewportWidth);
     setCurrentIndex(index);
   };
 
   const scrollToIndex = (index) => {
-    scrollViewRef.current.scrollTo({ x: index * viewportWidth, animated: true });
-    setCurrentIndex(index);
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: index * viewportWidth, animated: true });
+      setCurrentIndex(index);
+    }
+  };
+
+  // Auto-scroll functionality
+  useEffect(() => {
+    if (data.length <= 1) return; // Don't auto-scroll if there's only one item
+
+    const startAutoScroll = () => {
+      // Clear any existing interval
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+      }
+
+      autoScrollIntervalRef.current = setInterval(() => {
+        if (!isUserScrollingRef.current && scrollViewRef.current) {
+          setCurrentIndex((prevIndex) => {
+            const nextIndex = (prevIndex + 1) % data.length;
+            scrollViewRef.current?.scrollTo({ 
+              x: nextIndex * viewportWidth, 
+              animated: true 
+            });
+            return nextIndex;
+          });
+        }
+      }, 3000); // Change slide every 3 seconds
+    };
+
+    startAutoScroll();
+
+    return () => {
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+      }
+    };
+  }, [data.length]);
+
+  // Reset user scrolling flag after user interaction
+  const handleScrollBeginDrag = () => {
+    isUserScrollingRef.current = true;
+    if (autoScrollIntervalRef.current) {
+      clearInterval(autoScrollIntervalRef.current);
+    }
+  };
+
+  const handleScrollEndDrag = () => {
+    // Resume auto-scroll after 5 seconds of no user interaction
+    setTimeout(() => {
+      isUserScrollingRef.current = false;
+      if (data.length > 1 && scrollViewRef.current) {
+        if (autoScrollIntervalRef.current) {
+          clearInterval(autoScrollIntervalRef.current);
+        }
+        autoScrollIntervalRef.current = setInterval(() => {
+          if (!isUserScrollingRef.current && scrollViewRef.current) {
+            setCurrentIndex((prevIndex) => {
+              const nextIndex = (prevIndex + 1) % data.length;
+              scrollViewRef.current?.scrollTo({ 
+                x: nextIndex * viewportWidth, 
+                animated: true 
+              });
+              return nextIndex;
+            });
+          }
+        }, 3000);
+      }
+    }, 5000);
   };
 
   return (
@@ -26,6 +95,8 @@ const CarouselComponent = ({ data }) => {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onScrollEndDrag={handleScrollEndDrag}
         scrollEventThrottle={16}
         style={styles.scrollView}
       >

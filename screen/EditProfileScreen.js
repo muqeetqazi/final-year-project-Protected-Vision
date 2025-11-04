@@ -565,8 +565,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 30 : 20,
+    paddingHorizontal: 20,
+    paddingTop: 70,
+    paddingBottom: 30,
   },
   backButton: {
     padding: 5,
@@ -575,6 +576,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+    marginTop: 4,
   },
   saveButton: {
     paddingHorizontal: 15,

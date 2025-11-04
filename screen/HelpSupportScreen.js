@@ -182,8 +182,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 30,
-    paddingBottom: 15,
+    paddingTop: 70,
+    paddingBottom: 30,
     paddingHorizontal: 16,
   },
   backButton: {
@@ -193,6 +193,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+    marginTop: 4,
   },
   placeholder: {
     width: 40,

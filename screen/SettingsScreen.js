@@ -210,8 +210,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 30,
-    paddingBottom: 15,
+    paddingTop: 70,
+    paddingBottom: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -219,6 +219,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+    marginTop: 4,
   },
   scrollView: {
     flex: 1,

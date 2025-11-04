@@ -364,13 +364,14 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 20,
-      paddingTop: 30,
-      paddingBottom: 8,
+      paddingTop: 70,
+      paddingBottom: 30,
       borderBottomWidth: 1,
    },
    headerTitle: {
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: 'bold',
+      marginTop: 4,
    },
    backButton: {
       padding: 6,
@@ -516,6 +517,7 @@ const styles = StyleSheet.create({
       fontWeight: '600',
       color: '#fff',
       marginLeft: 8,
+      paddingBottom :0
    },
    loadingContainer: {
       alignItems: 'center',

@@ -1,7 +1,7 @@
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import { Video } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useState } from 'react';
@@ -10,6 +10,7 @@ import {
     Alert,
     Dimensions,
     Image,
+    Modal,
     ScrollView,
     Share,
     StyleSheet,
@@ -35,6 +36,7 @@ const ResultScreen = ({ route, navigation }) => {
     processingTime: '0ms',
   });
   const [riskLevel, setRiskLevel] = useState('low');
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
   useEffect(() => {
     const meta = media?.meta || {};
@@ -287,14 +289,6 @@ const ResultScreen = ({ route, navigation }) => {
 
   // handleSave function removed - replaced with download functionality
 
-  const handleRedact = () => {
-    Alert.alert(
-      'Redaction Complete',
-      'Sensitive information has been redacted from your image',
-      [{ text: 'OK' }]
-    );
-  };
-
   const handleDownload = async () => {
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -304,29 +298,47 @@ const ResultScreen = ({ route, navigation }) => {
       }
 
       let localUri = media.uri;
+      let tempPath = '';
 
-      // If data URI (base64), write to a temp file first
+      // Get cache directory path from legacy API
+      const cachePath = FileSystem.cacheDirectory;
+
+      // If data URI (base64), convert it to a file
       if (typeof localUri === 'string' && localUri.startsWith('data:')) {
         const isVideo = media.type === 'video' || localUri.startsWith('data:video');
         const ext = isVideo ? 'mp4' : 'jpg';
-        const tempPath = `${FileSystem.cacheDirectory}protectedvision_${Date.now()}.${ext}`;
-        const base64 = localUri.substring(localUri.indexOf('base64,') + 7);
-        await FileSystem.writeAsStringAsync(tempPath, base64, { encoding: FileSystem.EncodingType.Base64 });
+        const fileName = `protectedvision_${Date.now()}.${ext}`;
+        tempPath = `${cachePath}${fileName}`;
+        
+        // Extract base64 data from data URI (remove the data:type;base64, prefix)
+        const base64Data = localUri.includes(',') ? localUri.split(',')[1] : localUri.replace(/^data:.*?;base64,/, '');
+        
+        // Write base64 data to file using legacy API
+        await FileSystem.writeAsStringAsync(tempPath, base64Data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        
         localUri = tempPath;
       } else if (typeof localUri === 'string' && localUri.startsWith('http')) {
-        // If remote URL, download to a local file
+        // If remote URL, download to a local file using legacy API
         const isVideo = media.type === 'video';
         const ext = isVideo ? 'mp4' : 'jpg';
-        const tempPath = `${FileSystem.cacheDirectory}protectedvision_${Date.now()}.${ext}`;
+        const fileName = `protectedvision_${Date.now()}.${ext}`;
+        tempPath = `${cachePath}${fileName}`;
+        
+        // Use legacy API to download from URL
         const { uri: downloadedUri } = await FileSystem.downloadAsync(localUri, tempPath);
         localUri = downloadedUri;
       }
 
-      const asset = await MediaLibrary.createAssetAsync(localUri);
-      await MediaLibrary.createAlbumAsync('ProtectedVision', asset, false);
-      Alert.alert('Success', 'File saved to your gallery!');
+      // Save to gallery using saveToLibraryAsync
+      await MediaLibrary.saveToLibraryAsync(localUri);
+      
+      // Show beautiful success alert
+      setShowSuccessAlert(true);
     } catch (error) {
-      Alert.alert('Error', 'Could not save the file.');
+      console.error('Download error:', error);
+      Alert.alert('Error', error.message || 'Could not save the file.');
     }
   };
 
@@ -484,24 +496,45 @@ const ResultScreen = ({ route, navigation }) => {
         </View>
 
         <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]} 
-            onPress={handleRedact}
-          >
-            <FontAwesome name="eraser" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Redact</Text>
-          </TouchableOpacity>
-
-        <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: theme.colors.secondary }]} 
+          <TouchableOpacity
+            style={[styles.downloadButton, { backgroundColor: theme.colors.secondary }]} 
             onPress={handleDownload}
-        >
-            <FontAwesome name="download" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Download</Text>
-        </TouchableOpacity>
-        
-      </View>
+          >
+            <FontAwesome name="download" size={22} color="#fff" />
+            <Text style={styles.downloadButtonText}>Download Media</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
+
+      {/* Beautiful Custom Success Alert */}
+      <Modal
+        visible={showSuccessAlert}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSuccessAlert(false)}
+      >
+        <TouchableOpacity 
+          style={styles.alertOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSuccessAlert(false)}
+        >
+          <View 
+            style={[styles.alertContainer, { backgroundColor: theme.colors.surface }]}
+            onStartShouldSetResponder={() => true}
+          >
+            <LinearGradient
+              colors={['#4CAF50', '#45a049']}
+              style={styles.alertIconContainer}
+            >
+              <FontAwesome name="check" size={30} color="#fff" />
+            </LinearGradient>
+            
+            <Text style={[styles.alertTitle, { color: theme.colors.text }]}>
+              Download Successful!
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -536,17 +569,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 30,
-    paddingBottom: 8,
+    paddingTop: 70,
+    paddingBottom: 30,
     paddingHorizontal: 16,
   },
   backButton: {
     padding: 6,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+    marginTop: 4,
   },
   shareButton: {
     padding: 6,
@@ -690,24 +724,65 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     margin: 16,
     marginTop: 0,
     marginBottom: 30,
   },
-  actionButton: {
+  downloadButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '48%',
-    paddingVertical: 12,
-    borderRadius: 8,
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
   },
-  actionButtonText: {
+  downloadButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    marginLeft: 8,
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  alertContainer: {
+    width: '100%',
+    maxWidth: 220,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  alertIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  alertTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

@@ -212,7 +212,10 @@ const ProfileScreen = ({ navigation }) => {
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
+            onPress={() => navigation.navigate('Settings')}
+          >
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
               <FontAwesome name="bell" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             </View>
@@ -220,15 +223,10 @@ const ProfileScreen = ({ navigation }) => {
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}>
-            <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
-              <FontAwesome name="lock" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
-            </View>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>Privacy & Security</Text>
-            <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('HelpSupport')}
+          >
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
               <FontAwesome name="question-circle" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             </View>
@@ -258,8 +256,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 30 : 20,
+    paddingHorizontal: 20,
+    paddingTop: 70,
+    paddingBottom: 30,
   },
   backButton: {
     padding: 5,
@@ -268,6 +267,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+    marginTop: 4,
   },
   headerButtons: {
     flexDirection: 'row',

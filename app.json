@@ -8,18 +8,15 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splashs.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs access to the camera to take photos and videos.",
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select media.",
         "NSMicrophoneUsageDescription": "This app needs access to the microphone to record videos.",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -28,15 +25,16 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "RECORD_AUDIO",
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "NOTIFICATIONS"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.NOTIFICATIONS",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
-      "useNextNotificationsApi": true
+      "package": "com.imuqeet55.ProtectedVision"
     },
     "web": {
       "bundler": "metro",
@@ -58,7 +56,9 @@
         {
           "icon": "./assets/images/notification-icon.png",
           "color": "#43034d",
-          "sounds": ["./assets/sounds/notification.wav"]
+          "sounds": [
+            "./assets/sounds/notification.wav"
+          ]
         }
       ]
     ],
@@ -71,6 +71,14 @@
     },
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "6635cf8b-92d3-4309-ae3c-03d88bf2c1cd"
+      }
     }
   }
 }
