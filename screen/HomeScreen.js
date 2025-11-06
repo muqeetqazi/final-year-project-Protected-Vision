@@ -1,4 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -34,7 +35,7 @@ const HomeScreen = ({ navigation }) => {
   const carouselData = [
     {
       image: require('../assets/images/lock1.jpg'),
-      text: 'Protect Your Sensitive Documents',
+      text: 'Protect Your Passwords',
     },
     {
       image: require('../assets/images/lock2.jpeg'),
@@ -42,7 +43,7 @@ const HomeScreen = ({ navigation }) => {
     },
     {
       image: require('../assets/images/bank.jpg'),
-      text: 'Secure Financial & Personal Information',
+      text: 'Secure Credit Card & Personal Information',
     },
   ];
 
@@ -63,9 +64,9 @@ const HomeScreen = ({ navigation }) => {
       description: 'Find and protect emails',
     },
     {
-      icon: 'medkit',
-      title: 'Medical Records',
-      description: 'Secure medical information',
+      icon: 'hashtag',
+      title: 'Transaction & Reference IDs',
+      description: 'Detect IDs and account numbers',
     },
     {
       icon: 'key',
@@ -73,20 +74,12 @@ const HomeScreen = ({ navigation }) => {
       description: 'Detect login credentials',
     },
     {
-      icon: 'bank',
-      title: 'Bank Information',
-      description: 'Secure bank account data',
+      icon: 'id-badge',
+      title: 'Personal Identification Numbers',
+      description: 'Detect personal ID numbers',
     },
   ];
 
-  const sensitiveDataTypes = [
-    { name: 'Driver License', icon: 'id-card' },
-    { name: 'Credit Cards', icon: 'credit-card' },
-    { name: 'Email Address', icon: 'envelope' },
-    { name: 'Medical Records', icon: 'medkit' },
-    { name: 'Email Password', icon: 'key' },
-    { name: 'Bank Information', icon: 'bank' },
-  ];
 
   useEffect(() => {
     requestPermissions();
@@ -104,21 +97,36 @@ const HomeScreen = ({ navigation }) => {
     const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
     const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
+    // Request audio permission for video recording
+    const { status: audioStatus } = await Audio.requestPermissionsAsync();
+    
     if (cameraStatus !== 'granted' || libraryStatus !== 'granted') {
       alert('Sorry, we need camera and media library permissions to make this work!');
     }
+    if (audioStatus !== 'granted') {
+      console.warn('Audio permission not granted - video recording may not work');
+    }
   };
 
-   const handleMediaPicker = async (type) => {
+   const handleMediaPicker = async (type, mediaType = 'all') => {
      try {
        let result;
        if (type === 'camera') {
-         result = await ImagePicker.launchCameraAsync({
-           allowsEditing: true,
-           aspect: [4, 3],
-           quality: 1,
-           mediaTypes: ImagePicker.MediaTypeOptions.All
-         });
+         if (mediaType === 'video') {
+           // Explicitly capture video
+           result = await ImagePicker.launchCameraAsync({
+             mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+             allowsEditing: false,
+             videoMaxDuration: 60, // 60 seconds max
+           });
+         } else {
+           // Capture photo (default)
+           result = await ImagePicker.launchCameraAsync({
+             mediaTypes: ImagePicker.MediaTypeOptions.Images,
+             allowsEditing: false,
+             quality: 1,
+           });
+         }
        } else {
          result = await ImagePicker.launchImageLibraryAsync({
            allowsEditing: false,
@@ -280,7 +288,7 @@ const HomeScreen = ({ navigation }) => {
             AI-Powered Sensitive Data Detection
           </Text>
           <Text style={[styles.infoDescription, { color: theme.colors.textSecondary }]}>
-            Our advanced machine learning model identifies and protects sensitive information in your documents, including personal identifiers, financial data, and official IDs.
+            Our advanced machine learning model identifies and protects sensitive information in your photo and Videos, including personal identifiers, financial data, and vehicle number plates.
           </Text>
         </View>
 
@@ -303,34 +311,9 @@ const HomeScreen = ({ navigation }) => {
                 colors={[theme.colors.primary, theme.isDarkMode ? '#2c0233' : '#7a1a87']}
                 style={styles.featureIconContainer}
               >
-                <FontAwesome name={feature.icon} size={24} color="#fff" />
+                <FontAwesome name={feature.icon} size={18} color="#fff" />
               </LinearGradient>
               <Text style={[styles.featureTitle, { color: theme.colors.text }]}>{feature.title}</Text>
-              <Text style={[styles.featureDescription, { color: theme.colors.textSecondary }]}>
-                {feature.description}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Protected Data Types
-        </Text>
-        <View style={[styles.dataTypesContainer, { 
-          backgroundColor: theme.colors.surface,
-          shadowColor: theme.isDarkMode ? '#000' : '#666'
-        }]}>
-          {sensitiveDataTypes.map((dataType, index) => (
-            <View key={index} style={styles.dataTypeItem}>
-              <LinearGradient
-                colors={[theme.colors.primary, theme.isDarkMode ? '#2c0233' : '#7a1a87']}
-                style={styles.dataTypeIconContainer}
-              >
-                <FontAwesome name={dataType.icon} size={16} color="#fff" />
-              </LinearGradient>
-              <Text style={[styles.dataTypeText, { color: theme.colors.text }]}>
-                {dataType.name}
-              </Text>
             </View>
           ))}
         </View>
@@ -339,7 +322,7 @@ const HomeScreen = ({ navigation }) => {
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Scan Your Document</Text>
           
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary, marginTop: 10 }]}
             onPress={() => handleMediaPicker('gallery')}
             disabled={uploading}
           >
@@ -362,8 +345,8 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => handleMediaPicker('camera')}
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary, marginTop: 15 }]}
+            onPress={() => handleMediaPicker('camera', 'photo')}
             disabled={uploading}
           >
             <LinearGradient
@@ -378,7 +361,30 @@ const HomeScreen = ({ navigation }) => {
               ) : (
                 <>
                   <FontAwesome name="camera" size={24} color="#fff" />
-                  <Text style={styles.buttonText}>Capture Document with Camera</Text>
+                  <Text style={styles.buttonText}>Capture with Camera</Text>
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary, marginTop: 15 }]}
+            onPress={() => handleMediaPicker('camera', 'video')}
+            disabled={uploading}
+          >
+            <LinearGradient
+              colors={[theme.colors.primary, theme.isDarkMode ? '#2c0233' : '#7a1a87']}
+              style={styles.actionButtonGradient}
+            >
+              {uploading ? (
+                <>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={styles.buttonText}>Uploading...</Text>
+                </>
+              ) : (
+                <>
+                  <FontAwesome name="video-camera" size={24} color="#fff" />
+                  <Text style={styles.buttonText}>Capture Video with Camera</Text>
                 </>
               )}
             </LinearGradient>
@@ -439,11 +445,11 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     marginHorizontal: 20,
-    marginTop: 25,
-    marginBottom: 15,
+    marginTop: 20,
+    marginBottom: 12,
   },
   featuresContainer: {
     flexDirection: 'row',
@@ -453,72 +459,42 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     width: '48%',
-    padding: 20,
-    borderRadius: 20,
+    padding: 14,
+    borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 14,
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   featureIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   featureTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
     textAlign: 'center',
   },
   featureDescription: {
-    fontSize: 13,
+    fontSize: 11,
     textAlign: 'center',
-    lineHeight: 18,
-  },
-  dataTypesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    margin: 20,
-    padding: 20,
-    borderRadius: 20,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  dataTypeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '50%',
-    paddingVertical: 10,
-  },
-  dataTypeIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  dataTypeText: {
-    fontSize: 14,
-    flex: 1,
+    lineHeight: 16,
   },
   actionContainer: {
     padding: 20,
     paddingBottom: 30,
+    marginTop: 20,
+    marginBottom: 20,
   },
   actionButton: {
     borderRadius: 15,

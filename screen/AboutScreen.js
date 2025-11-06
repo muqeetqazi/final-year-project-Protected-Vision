@@ -148,7 +148,7 @@ const AboutScreen = ({ navigation }) => {
         <View style={styles.placeholder} />
       </View>
       
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
         {/* App Info Section */}
         <View style={[styles.appInfoSection, { backgroundColor: theme.colors.surface }]}>
           <View style={[styles.appIcon, { backgroundColor: theme.colors.primary }]}>

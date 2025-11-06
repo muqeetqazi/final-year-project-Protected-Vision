@@ -22,6 +22,7 @@ import { API_CONFIG } from '../app/config/api';
 import { useAuth } from '../app/context/AuthContext';
 import { useTheme } from '../app/context/ThemeContext';
 import { TokenManager } from '../app/services/AuthService';
+import NotificationService from '../app/services/NotificationService';
 
 const { width } = Dimensions.get('window');
 
@@ -57,6 +58,12 @@ const ResultScreen = ({ route, navigation }) => {
     setCounts({ detectionTypes, detections, processingTime });
     setRiskLevel(detections > 0 ? 'high' : 'low');
     setLoading(false);
+
+    // Send notification when result is ready
+    NotificationService.sendImmediateNotification(
+      'Analysis Complete!',
+      `Your document analysis is ready. ${detections > 0 ? `${detections} sensitive items found.` : 'No sensitive items detected.'}`
+    );
 
     // Update statistics after ML analysis completion
     const updateStats = async () => {
@@ -726,7 +733,7 @@ const styles = StyleSheet.create({
   actionButtonsContainer: {
     margin: 16,
     marginTop: 0,
-    marginBottom: 30,
+    marginBottom: 50,
   },
   downloadButton: {
     flexDirection: 'row',

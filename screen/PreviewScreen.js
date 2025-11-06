@@ -119,7 +119,7 @@ const PreviewScreen = ({ route, navigation }) => {
             >
                <FontAwesome name="arrow-left" size={24} color={theme.colors.primary} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Document Preview</Text>
+            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Preview</Text>
             <View style={{ width: 24 }} />
          </View>
 
@@ -217,6 +217,19 @@ const PreviewScreen = ({ route, navigation }) => {
                <Text style={styles.infoText}>
                   Our AI will scan this document for sensitive information such as IDs, financial data, and personal identifiers.
                </Text>
+            </View>
+
+            {/* Beautiful Result Ready Message */}
+            <View style={[styles.resultMessageContainer, { backgroundColor: theme.colors.surface }]}>
+               <LinearGradient
+                  colors={[theme.colors.primary, theme.isDarkMode ? '#2c0233' : '#7a1a87']}
+                  style={styles.resultMessageGradient}
+               >
+                  <FontAwesome name="bell" size={24} color="#fff" style={styles.resultMessageIcon} />
+                  <Text style={styles.resultMessageText}>
+                     We will let you know when your result is ready.
+                  </Text>
+               </LinearGradient>
             </View>
          </ScrollView>
 
@@ -478,6 +491,34 @@ const styles = StyleSheet.create({
       flex: 1,
       lineHeight: 16,
    },
+   resultMessageContainer: {
+      marginHorizontal: 12,
+      marginBottom: 12,
+      borderRadius: 12,
+      overflow: 'hidden',
+      shadowOffset: {
+         width: 0,
+         height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+   },
+   resultMessageGradient: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+   },
+   resultMessageIcon: {
+      marginRight: 12,
+   },
+   resultMessageText: {
+      color: '#fff',
+      fontSize: 15,
+      fontWeight: '600',
+      flex: 1,
+      lineHeight: 20,
+   },
    actionContainer: {
       padding: 16,
       borderTopLeftRadius: 20,
@@ -572,6 +613,7 @@ const styles = StyleSheet.create({
    },
    modalContent: {
       padding: 16,
+      paddingBottom: 30,
    },
    modelCard: {
       borderRadius: 10,

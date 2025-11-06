@@ -219,7 +219,7 @@ const ProfileScreen = ({ navigation }) => {
             <View style={[styles.menuIconContainer, { backgroundColor: theme.isDarkMode ? '#2c0233' : '#f0e6f3' }]}>
               <FontAwesome name="bell" size={20} color={theme.isDarkMode ? "#fff" : theme.colors.primary} />
             </View>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>Notifications</Text>
+            <Text style={[styles.menuText, { color: theme.colors.text }]}>Customizations</Text>
             <FontAwesome name="chevron-right" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
 
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     margin: 20,
     padding: 16,
     borderRadius: 15,
-    marginBottom: 30,
+    marginBottom: 50,
   },
   logoutText: {
     color: '#fff',

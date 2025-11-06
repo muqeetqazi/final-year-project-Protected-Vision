@@ -131,16 +131,7 @@ const AuthScreen = ({ navigation }) => {
 
     if (isLogin) {
       const result = await login(loginEmail.trim(), loginPassword);
-      if (result.success) {
-        showBeautifulAlert(
-          'success',
-          'Welcome Back! 🎉',
-          'You have successfully logged in to Protected Vision.',
-          'Continue',
-          false,
-          () => navigation.replace('Home')
-        );
-      } else {
+      if (!result.success) {
         showBeautifulAlert(
           'error',
           'Login Failed',
@@ -148,6 +139,7 @@ const AuthScreen = ({ navigation }) => {
           'Try Again'
         );
       }
+      // Login success is handled by useEffect that navigates when isAuthenticated becomes true
     } else {
       const userData = {
         email: signupEmail.trim(),

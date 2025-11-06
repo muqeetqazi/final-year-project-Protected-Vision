@@ -379,6 +379,7 @@ const EditProfileScreen = ({ navigation }) => {
         style={[styles.content, { backgroundColor: theme.colors.background }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: 30 }}
       >
         {/* Profile Image Section */}
         <LinearGradient

@@ -69,6 +69,11 @@
       "androidMode": "default",
       "androidCollapsedTitle": "Protected Vision"
     },
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F5F5"
+    },
     "experiments": {
       "typedRoutes": true
     },

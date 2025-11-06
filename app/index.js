@@ -15,7 +15,6 @@ import PrivacyPolicyScreen from '../screen/PrivacyPolicyScreen';
 import ProfileScreen from '../screen/ProfileScreen';
 import ResultScreen from '../screen/ResultScreen';
 import SettingsScreen from '../screen/SettingsScreen';
-import SplashScreen from '../screen/SplashScreen';
 
 
 
@@ -26,12 +25,11 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <Stack.Navigator
-          initialRouteName="Splash"
+          initialRouteName="Auth"
           screenOptions={{
             headerShown: false,
           }}
         >
-          <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Auth" component={AuthScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Preview" component={PreviewScreen} />
